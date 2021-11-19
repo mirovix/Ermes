@@ -17,9 +17,8 @@
             "includePath": [
                 "/home/federico/arduino-1.8.16/hardware/arduino/avr/cores/arduino",
                 "/home/federico/arduino-1.8.16/hardware/arduino/avr/variants/eightanaloginputs",
+                "/home/federico/Arduino/libraries/Ixmatix_LSM9DS1_arduino_ros/src",
                 "/home/federico/arduino-1.8.16/hardware/arduino/avr/libraries/Wire/src",
-                "/home/federico/Arduino/libraries/PmodNAV",
-                "/home/federico/arduino-1.8.16/hardware/arduino/avr/libraries/SPI/src",
                 "/home/federico/arduino-1.8.16/hardware/tools/avr/lib/gcc/avr/7.3.0/include",
                 "/home/federico/arduino-1.8.16/hardware/tools/avr/lib/gcc/avr/7.3.0/include-fixed",
                 "/home/federico/arduino-1.8.16/hardware/tools/avr/avr/include"
