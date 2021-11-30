@@ -16,10 +16,8 @@
             "intelliSenseMode": "gcc-x64",
             "includePath": [
                 "/home/federico/arduino-1.8.16/hardware/arduino/avr/cores/arduino",
-                "/home/federico/arduino-1.8.16/hardware/arduino/avr/variants/mega",
-                "/home/federico/Arduino/libraries/Ixmatix_LSM9DS1_arduino_ros/src",
-                "/home/federico/arduino-1.8.16/hardware/arduino/avr/libraries/Wire/src",
-                "/home/federico/Arduino/libraries/ros_lib",
+                "/home/federico/arduino-1.8.16/hardware/arduino/avr/variants/eightanaloginputs",
+                "/home/federico/Arduino/libraries/HX711_ADC/src",
                 "/home/federico/arduino-1.8.16/hardware/tools/avr/lib/gcc/avr/7.3.0/include",
                 "/home/federico/arduino-1.8.16/hardware/tools/avr/lib/gcc/avr/7.3.0/include-fixed",
                 "/home/federico/arduino-1.8.16/hardware/tools/avr/avr/include"
@@ -32,7 +30,7 @@
             "defines": [
                 "F_CPU=16000000L",
                 "ARDUINO=10816",
-                "ARDUINO_AVR_MEGA2560",
+                "ARDUINO_AVR_NANO",
                 "ARDUINO_ARCH_AVR",
                 "__DBL_MIN_EXP__=(-125)",
                 "__HQ_FBIT__=15",

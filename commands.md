@@ -9,3 +9,9 @@ source /opt/ros/noetic/setup.bash
 #SETUP devel bash
 
 source devel/setup.bash
+
+
+#publish position base link:
+
+rosrun tf static_transform_publisher 0 0 0 0 0 0 1 map base_link 10
+
