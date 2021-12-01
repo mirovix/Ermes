@@ -1,4 +1,4 @@
-#define HIGH_FREQUENCY
+//#define HIGH_FREQUENCY
 
 #define PIN_OUTPUT 3
 
