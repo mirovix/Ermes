@@ -15,6 +15,20 @@
    i.e. if you are refreshing an graphical LCD, etc.
    The pin used for dout must be external interrupt capable.
 */
+
+/**
+ * @file load_cell_reader.ino
+ * @author your name (you@domain.com)
+ * @brief 
+ * @version 0.1
+ * @date 2021-12-01
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ * 
+ * PINMAP arduino mega
+ * https://www.arduino.cc/en/Hacking/PinMapping2560
+ */
 #define PWM0 0
 #define PWM1 1
 #define PWM2 2

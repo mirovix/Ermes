@@ -1,4 +1,5 @@
 //#define HIGH_FREQUENCY
+//#define DEBUG_LOG
 
 #define PIN_OUTPUT 3
 
