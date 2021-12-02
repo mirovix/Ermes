@@ -26,11 +26,11 @@ void setup()
     Serial.println("Starting...");
 
     float calibrationValue;   // calibration value
-    calibrationValue = 696.0; // uncomment this if you want to set this value in the sketch
+    calibrationValue = 1.0; // uncomment this if you want to set this value in the sketch
     LoadCell.begin();
     // LoadCell.setReverseOutput();
     unsigned long stabilizingtime = 2000; // tare preciscion can be improved by adding a few seconds of stabilizing time
-    boolean _tare = true;                 // set this to false if you don't want tare to be performed in the next step
+    boolean _tare = false;                 // set this to false if you don't want tare to be performed in the next step
     LoadCell.start(stabilizingtime, _tare);
     if (LoadCell.getTareTimeoutFlag())
     {
@@ -66,7 +66,7 @@ void setup()
 void loop()
 {
     static boolean newDataReady = 0;
-    const int serialPrintInterval = 500; // increase value to slow down serial print activity
+    const int serialPrintInterval = 20; // increase value to slow down serial print activity
 
     // check for new data/start next conversion:
     if (LoadCell.update())
@@ -78,7 +78,7 @@ void loop()
         if (millis() > t + serialPrintInterval)
         {
             float i = LoadCell.getData();
-            Serial.print("Load_cell output val: ");
+            //Serial.print("Load_cell output val: ");
             Serial.println(i);
             newDataReady = 0;
             t = millis();

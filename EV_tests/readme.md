@@ -40,3 +40,8 @@ PWM_generator carica un PWM hardcoded oppure con gli oscillatori di arduino, c'Ã
  5) Controlla il collegamento dell'HX711 se Ã¨ corretto secondo i pin del codice
  6) console che reindirizza su file
  7) cortocircuita il filo di start
+
+ ### Comandi utili
+Redirect dev/ttyacm0 su received.txt:
+
+ cat > received.txt < /dev/ttyACM0

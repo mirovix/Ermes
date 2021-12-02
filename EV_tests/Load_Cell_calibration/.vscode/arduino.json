@@ -1,7 +1,7 @@
 {
-    "configuration": "cpu=atmega328",
-    "board": "arduino:avr:nano",
+    "configuration": "cpu=atmega2560",
+    "board": "arduino:avr:mega",
     "programmer": "arduino:avrispmkii",
     "sketch": "calibration.ino",
-    "port": "/dev/ttyUSB0"
+    "port": "/dev/ttyACM0"
 }
