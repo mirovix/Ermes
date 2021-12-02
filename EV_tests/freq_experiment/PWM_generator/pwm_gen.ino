@@ -10,11 +10,14 @@
 #endif
 
 #ifndef HIGH_FREQUENCY
-#define PWM_DELAY_STEP_MS 16 // 8 ms delay step = 8*2^bits ms period
+#define PWM_DELAY_STEP_MS 14 // 8 ms delay step = 8*2^bits ms period
 #define PWM_MAX 7
 #define PWM_SET 1 // 0 to 7 setpoints
 
-#define LOOP_COUNT 50
+
+
+
+#define LOOP_COUNT 100
 #define INITIAL_DELAY 10000
 #endif
 #include <Arduino.h>
