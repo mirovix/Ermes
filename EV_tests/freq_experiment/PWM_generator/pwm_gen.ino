@@ -1,22 +1,17 @@
 //#define HIGH_FREQUENCY
 //#define DEBUG_LOG
+#define PRINT_PWM
 
 #define PIN_OUTPUT 3
-#define PIN_EXPERIMENT 6
+#define PIN_EXPERIMENT 2
 
 #ifdef HIGH_FREQUENCY
 #define DELAY 1000
 #define PWM_VALUE 128
-#endif
-
-#ifndef HIGH_FREQUENCY
-#define PWM_DELAY_STEP_MS 24 // 8 ms delay step = 8*2^bits ms period
+#else
+#define PWM_DELAY_STEP_MS 6 // 8 ms delay step = 8*2^bits ms period
 #define PWM_MAX 7
-#define PWM_SET 1 // 0 to 7 setpoints
-
-
-
-
+#define PWM_SET 5 // 0 to 7 setpoints
 #define LOOP_COUNT 100
 #define INITIAL_DELAY 10000
 #endif
@@ -24,15 +19,16 @@
 
 void setup()
 {
-#if defined(HIGH_FREQUENCY)
-    TCCR2B = (TCCR2B & 0b11111000) | 0x05;   // 245.10 [Hz]
-    // TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
-    //TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
-#endif
     pinMode(PIN_OUTPUT, OUTPUT);
     pinMode(PIN_EXPERIMENT, OUTPUT);
-
     delay(INITIAL_DELAY);
+
+#if defined(HIGH_FREQUENCY)
+    TCCR2B = (TCCR2B & 0b11111000) | 0x05; // 245.10 [Hz]
+    // TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
+    // TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
+#else
+
     digitalWrite(PIN_EXPERIMENT, HIGH);
     for (size_t cycle = 0; cycle < LOOP_COUNT; cycle++)
     {
@@ -51,6 +47,7 @@ void setup()
     }
     digitalWrite(PIN_EXPERIMENT, LOW);
     digitalWrite(PIN_OUTPUT, LOW);
+#endif
 }
 
 void loop()

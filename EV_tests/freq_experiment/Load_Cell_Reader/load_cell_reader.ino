@@ -29,15 +29,20 @@
  * PINMAP arduino mega
  * https://www.arduino.cc/en/Hacking/PinMapping2560
  */
-#define PWM0 2
-#define PWM1 3
-#define PWM2 4
-#define PWM_MASK 0x0C
-#define PWM_SHIFT 1
+
+#define PRINT_PWM
+#ifdef PRINT_PWM
+#define PWM0 37
+#define PWM1 36
+#define PWM2 35
+#define PWM3 34
+#define PWM_MASK 0x0F
+//#define PWM_SHIFT 0
+
+#endif
 
 #define EXPERIMENT_CONTROL
 //#define TARE_CONTROL
-
 
 #define PIN_EXPERIMENT 4
 
@@ -54,11 +59,14 @@ boolean newDataReady;
 
 void setup()
 {
+#ifdef PRINT_PWM
   pinMode(PWM0, INPUT);
   pinMode(PWM1, INPUT);
   pinMode(PWM2, INPUT);
+  pinMode(PWM3, INPUT);
+#endif
   pinMode(PIN_EXPERIMENT, INPUT);
-  Serial.begin(57600);
+  Serial.begin(115200);
   delay(10);
   Serial.println();
   Serial.println("Starting...");
@@ -85,7 +93,7 @@ void setup()
 
 void loop()
 {
-  const int serialPrintInterval = 10; // increase value to slow down serial print activity
+  const int serialPrintInterval = 15; // increase value to slow down serial print activity
 
 #ifdef EXPERIMENT_CONTROL
   byte inExperiment = digitalRead(PIN_EXPERIMENT);
@@ -100,7 +108,16 @@ void loop()
     if (millis() > t + serialPrintInterval)
     {
       float i = LoadCell.getData();
-      // Serial.print("Load_cell output val: ");
+// Serial.print("Load_cell output val: ");
+#ifdef PRINT_PWM
+#ifdef PWM_SHIFT
+      byte pwm = PINC & PWM_MASK >> PWM_SHIFT;
+#else
+      byte pwm = PINC & PWM_MASK;
+#endif
+      Serial.print(pwm);
+      Serial.print(" ");
+#endif
       Serial.println(i);
       newDataReady = 0;
       t = millis();
