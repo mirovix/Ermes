@@ -49,13 +49,13 @@ void setup()
 #if defined(HIGH_FREQUENCY) //HIGH FREQUENCY EXPERIMENT SECTION
     //TCCR2B = (TCCR2B & 0b11111000) | 0x05; // 245.10 [Hz]
     
-    //TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
-    TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
+    TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
+    //TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
     digitalWrite(PIN_EXPERIMENT, HIGH);
-    for (size_t i = 0, pwm_real=0; pwm_real<256; ++i, pwm_real+=16)
+    for (size_t i = 0, pwm_real=207; pwm_real<256; ++i, pwm_real+=8)
     {
         writePWMData(i);
-        analogWrite(PIN_OUTPUT, pwm_real+15); 
+        analogWrite(PIN_OUTPUT, pwm_real); 
         delay(DELAY);
     }
     digitalWrite(PIN_EXPERIMENT, LOW);
