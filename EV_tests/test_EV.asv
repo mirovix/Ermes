@@ -150,7 +150,6 @@ massa_equivalente = @(vv) q + m*vv;
 % loatxt')
 % r24 = run4(:,3);  
 
-% 30 Hz
 load('freq_experiment/high_frequency_results/r30Hz_0_256_16step.txt')
 r30 = r30Hz_0_256_16step;
 
@@ -169,35 +168,31 @@ for j=1:16
     r30_step = r30_mat(:,j);
     r30_step(r30_step==0)=[];   % toglie gli zeri dovuti alla presa dati
     r30_value(j)=mean(r30_step)/1e6;
+    
 end
 
-figure
+% analisi dati 30 Hz
 xi = 1:1:16;
-yi = 9.81*massa_equivalente(r30_value);
-plot(xi,yi)
+scarti_x_vect30 = (xi - x_media*ones(1,length(xi)));
+scarti2_x_vect30 = scarti_x_vect30.^2;
+S_xx0 = 0;
 
-% % analisi dati 30 Hz
-% xi = 1:1:16;
-% scarti_x_vect30 = (xi - x_media*ones(1,length(xi)));
-% scarti2_x_vect30 = scarti_x_vect30.^2;
-% S_xx0 = 0;
-% 
-% for i = 1:length(scarti2_x_vect30)
-% Sxx = scarti2_x_vect30(i) + S_xx0;  % calcolo della varianza
-% S_xx0 = Sxx;
-% end
-% 
-% scarti_y_vect = (yi - y_media*ones(1,length(yi)));
-% S_xy0 = 0;
-% for i = 1:length(scarti2_x_vect30)
-% Sxy = scarti_x_vect30(i)*scarti_y_vect(i) + S_xy0; % calcolo della covarianza
-% S_xy0 = Sxy;
-% end
-% 
-% m = Sxy/Sxx;
-% q = y_media - m*x_media;
-% xx = linspace(0, 8, 160);
-% yy = q + m*xx;
+for i = 1:length(scarti2_x_vect30)
+Sxx = scarti2_x_vect30(i) + S_xx0;  % calcolo della varianza
+S_xx0 = Sxx;
+end
+
+scarti_y_vect = (yi - y_media*ones(1,length(yi)));
+S_xy0 = 0;
+for i = 1:length(scarti2_x_vect30)
+Sxy = scarti_x_vect30(i)*scarti_y_vect(i) + S_xy0; % calcolo della covarianza
+S_xy0 = Sxy;
+end
+
+m = Sxy/Sxx;
+q = y_media - m*x_media;
+xx = linspace(0, 8, 160);
+yy = q + m*xx;
 
 %%
 %     
