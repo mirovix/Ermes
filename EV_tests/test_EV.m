@@ -82,9 +82,9 @@ clear
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DALLA TARATURA
 
-m = 98.590309688091990;
-q = -8.245683452922070e+02;  %alla fine di tutto qua incolliamo il codice di taratura preciso
-massa_equivalente = @(vv) q + m*vv; 
+m122 = 98.590309688091990;
+q122 = -8.245683452922070e+02;  %alla fine di tutto qua incolliamo il codice di taratura preciso
+massa_equivalente = @(vv) q122 + m122*vv; 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -96,65 +96,38 @@ massa_equivalente = @(vv) q + m*vv;
 %   - Frequenza di PWM variabile
 %   - Pressione regolatore 30 psi
 %   - Frequenza amplificatore 80 Hz
-%   - Secondi acquisizione 0.5s --> 4s in tot
-%   - 8 bit di precisione del PWM
+%   - 
+%   - 
 %  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 %
 % %                           PRESA DATI
-% % 4 Hz
-% load('run4_1.txt')
-% load('run4_2.txt')
-% load('run4_3.txt')
-% load('run4_4.txt')
-% load('run4_5.txt')
-% load('run4_6.txt')
-% load('run4_7.txt')
-% load('run4_8.txt')
-% 
-% r4_1_vect = run4_1(:,3);  
-% r4_1= mean(r4_1_vect);  % Media lettura (serve per spinta media)
-% 
-% r4_2_vect = run4_2(:,3);  
-% r4_2= mean(r4_2_vect);
-% 
-% r4_3_vect = run4_3(:,3);  
-% r4_3= mean(r4_3_vect);
-% 
-% r4_4_vect = run4_4(:,3);  
-% r4_4= mean(r4_4_vect);
-% 
-% r4_5_vect = run4_5(:,3);  
-% r4_5= mean(r4_5_vect);
-% 
-% r4_6_vect = run4_6(:,3);  
-% r4_6= mean(r4_6_vect);
-% 
-% r4_7_vect = run4_7(:,3);  
-% r4_7= mean(r4_7_vect);
-% 
-% r4_8_vect = run4_8(:,3);  
-% r4_8= mean(r4_8_vect);
 
-% Replicare con tutte le frequenze
-% % 8 Hz
-% load('run4.txt')
-% r8 = run4(:,3);  
-% 
-% % 16 Hz
-% load('run4.txt')
-% r16 = run4(:,3);  
-% 
-% % 24 Hz -> per verificare osa succede nel caso che il tempo di on&off sia
-% % minore di 4 ms
-% loatxt')
-% r24 = run4(:,3);  
 
 % 30 Hz
-load('freq_experiment/high_frequency_results/r30Hz_0_256_16step.txt')
-r30 = r30Hz_0_256_16step;
+load('freq_experiment/high_frequency_results/r1_30Hz_0_256_16step.txt')
+load('freq_experiment/high_frequency_results/r2_30Hz_0_256_16step.txt')
+load('freq_experiment/high_frequency_results/r3_30Hz_0_256_16step.txt')
+r30 = [r1_30Hz_0_256_16step; r1_30Hz_0_256_16step; r1_30Hz_0_256_16step];
 
-a=zeros(16,1); %indice 
+% 122.55 Hz
+load('freq_experiment/high_frequency_results/r1_122Hz_208_256_4step.txt')
+load('freq_experiment/high_frequency_results/r2_122Hz_208_256_4step.txt')
+load('freq_experiment/high_frequency_results/r3_122Hz_208_256_6step.txt')
+r122 = [r1_122Hz_208_256_4step; r2_122Hz_208_256_4step; r3_122Hz_208_256_6step];
+
+% 30 Hz
+load('freq_experiment/high_frequency_results/r1_245Hz_208_256_4step.txt')
+load('freq_experiment/high_frequency_results/r2_245Hz_208_256_4step.txt')
+r245 = [r1_245Hz_208_256_4step; r2_245Hz_208_256_4step];
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       ANALISI DATI
+
+%%%%%%%%%%%%%%%%%%%%%
+% % 30 Hz
+a=zeros(16,1); % indice 
 for j=1:16
 for i=1:length(r30)
     if  r30(i,1)==j-1
@@ -168,42 +141,167 @@ end
 for j=1:16
     r30_step = r30_mat(:,j);
     r30_step(r30_step==0)=[];   % toglie gli zeri dovuti alla presa dati
-    r30_value(j)=mean(r30_step)/1e6;
+    r30_value(j) = mean(r30_step)/1e6;
 end
 
-figure
-xi = 1:1:16;
-yi = 9.81*massa_equivalente(r30_value);
-plot(xi,yi)
+% retta di regressione
+xi30 = 4:1:16; % togliamo dove non sia apre
+x_media30 = mean(xi30);
+yi30 = r30_value(4:1:16);
+y_media30 = mean(yi30);
 
-% % analisi dati 30 Hz
-% xi = 1:1:16;
-% scarti_x_vect30 = (xi - x_media*ones(1,length(xi)));
-% scarti2_x_vect30 = scarti_x_vect30.^2;
-% S_xx0 = 0;
+scarti_x_vect30 = (xi30 - x_media30*ones(1,length(xi30)));
+scarti2_x_vect30 = scarti_x_vect30.^2;
+S_xx0 = 0;
+for i = 1:length(scarti2_x_vect30)
+Sxx = scarti2_x_vect30(i) + S_xx0;  % calcolo della varianza
+S_xx0 = Sxx;
+end
+
+scarti_y_vect = (yi30 - y_media30*ones(1,length(yi30)));
+S_xy0 = 0;
+for i = 1:length(scarti2_x_vect30)
+Sxy = scarti_x_vect30(i)*scarti_y_vect(i) + S_xy0; % calcolo della covarianza
+S_xy0 = Sxy;
+end
+
+m30 = Sxy/Sxx;
+q30 = y_media30 - m30*x_media30;
+xx30 = linspace(4, 16, 100);
+yy30 = q30 + m30*xx30;
+
+% plotting
+xp30 = 1:1:16;
+yi = 9.81*massa_equivalente(r30_value);
+yy30 = 9.81*massa_equivalente(yy30);
+
+figure
+plot(xp30,yi,'*')
+hold on
+plot(xx30, yy30)
+plot(xp30,yi)
+title('Grafico step PWM - Spinta media, 30 Hz')
+xlabel('step PWM')
+ylabel('Spinta media')
+
+%%%%%%%%%%%%%%%%%%%%%%
+% 122.55 Hz
+a=zeros(6,1); % indice 
+for j=1:6
+for i=1:length(r122)
+    if  r122(i,1)==j-1
+        a(j)=a(j)+1;
+        k = a(j);
+        r122_mat(k,j) = r122(i,2);
+    end
+end
+end
+
+for j=1:6
+    r122_step = r122_mat(:,j);
+    r122_step(r122_step==0)=[];   % toglie gli zeri dovuti alla presa dati
+    r122_value(j) = mean(r122_step)/1e6;
+end
+
+% % retta di regressione  --> dati molto sporchi
+% xi122 = 4:1:16; % togliamo dove non sia apre
+% x_media122 = mean(xi122);
+% yi122 = r122_value(4:1:16);
+% y_media122 = mean(yi122);
 % 
-% for i = 1:length(scarti2_x_vect30)
-% Sxx = scarti2_x_vect30(i) + S_xx0;  % calcolo della varianza
+% scarti_x_vect122 = (xi122 - x_media122*ones(1,length(xi122)));
+% scarti2_x_vect122 = scarti_x_vect122.^2;
+% S_xx0 = 0;
+% for i = 1:length(scarti2_x_vect122)
+% Sxx = scarti2_x_vect122(i) + S_xx0;  % calcolo della varianza
 % S_xx0 = Sxx;
 % end
 % 
-% scarti_y_vect = (yi - y_media*ones(1,length(yi)));
+% scarti_y_vect = (yi122 - y_media122*ones(1,length(yi122)));
 % S_xy0 = 0;
-% for i = 1:length(scarti2_x_vect30)
-% Sxy = scarti_x_vect30(i)*scarti_y_vect(i) + S_xy0; % calcolo della covarianza
+% for i = 1:length(scarti2_x_vect122)
+% Sxy = scarti_x_vect122(i)*scarti_y_vect(i) + S_xy0; % calcolo della covarianza
 % S_xy0 = Sxy;
 % end
 % 
-% m = Sxy/Sxx;
-% q = y_media - m*x_media;
-% xx = linspace(0, 8, 160);
-% yy = q + m*xx;
+% m122 = Sxy/Sxx;
+% q122 = y_media122 - m122*x_media122;
+% xx122 = linspace(4, 16, 100);
+% yy122 = q122 + m122*xx122;
+% 
+% plotting
+xp122 = 1:1:6;
+yi = 9.81*massa_equivalente(r122_value);
+% yy122 = 9.81*massa_equivalente(yy122);
 
-%%
-%     
-% 
-% 
-% 
+figure
+plot(xp122,yi,'*')
+hold on
+% plot(xx122, yy122) % retta di regressione
+plot(xp122,yi)
+title('Grafico step PWM - Spinta media, 122.55 Hz')
+xlabel('step PWM')
+ylabel('Spinta media')
+
+%%%%%%%%%%%%%
+% 245.10 Hz
+a=zeros(4,1); % indice 
+for j=1:4
+for i=1:length(r245)
+    if  r245(i,1)==j-1
+        a(j)=a(j)+1;
+        k = a(j);
+        r245_mat(k,j) = r245(i,2);
+    end
+end
+end
+
+for j=1:4
+    r245_step = r245_mat(:,j);
+    r245_step(r245_step==0)=[];   % toglie gli zeri dovuti alla presa dati
+    r245_value(j) = mean(r245_step)/1e6;
+end
+
+% retta di regressione
+xi245 = 2:1:4; % togliamo dove non sia apre
+x_media245 = mean(xi245);
+yi245 = r245_value(2:1:4);
+y_media245 = mean(yi245);
+
+scarti_x_vect245 = (xi245 - x_media245*ones(1,length(xi245)));
+scarti2_x_vect245 = scarti_x_vect245.^2;
+S_xx0 = 0;
+for i = 1:length(scarti2_x_vect245)
+Sxx = scarti2_x_vect245(i) + S_xx0;  % calcolo della varianza
+S_xx0 = Sxx;
+end
+
+scarti_y_vect = (yi245 - y_media245*ones(1,length(yi245)));
+S_xy0 = 0;
+for i = 1:length(scarti2_x_vect245)
+Sxy = scarti_x_vect245(i)*scarti_y_vect(i) + S_xy0; % calcolo della covarianza
+S_xy0 = Sxy;
+end
+
+m245 = Sxy/Sxx;
+q245 = y_media245 - m245*x_media245;
+xx245 = linspace(2, 4, 100);
+yy245 = q245 + m245*xx245;
+
+% plotting
+xp245 = 1:1:4;
+yi = 9.81*massa_equivalente(r245_value);
+yy245 = 9.81*massa_equivalente(yy245);
+
+figure
+plot(xp245,yi,'*')
+hold on
+plot(xx245, yy245)
+plot(xp245,yi)
+title('Grafico step PWM - Spinta media, 245.10 Hz')
+xlabel('step PWM')
+ylabel('Spinta media')
+%% 
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % %
 % % %                    ANALISI DATI
