@@ -1,4 +1,4 @@
-# ESPERIMENTO LABORATORIO
+# NOTE UTILI SULLA SPERIMENTAZIONE DELLE ELETTROVALVOLE
 Test delle elettrovalvole per valutare le capacità di apertura chiusura e le possibilità di regolazione del PWM.
 
 ## Circuito
