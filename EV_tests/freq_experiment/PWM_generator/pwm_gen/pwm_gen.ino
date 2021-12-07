@@ -51,6 +51,7 @@ void setup()
 
   //TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
   //TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
+  //TCCR2B = (TCCR2B & 0b11111000) | 0x07;   // 24 [Hz]
   digitalWrite(PIN_EXPERIMENT, HIGH);
   for (size_t i = 0, pwm_real = 0; i < 16; ++i, pwm_real += 16)
   {
