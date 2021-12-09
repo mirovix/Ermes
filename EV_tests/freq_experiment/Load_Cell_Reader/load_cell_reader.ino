@@ -42,7 +42,6 @@
 #endif
 
 #define EXPERIMENT_CONTROL
-//#define TARE_CONTROL
 
 #define PIN_EXPERIMENT 4
 
@@ -76,7 +75,7 @@ void setup()
   LoadCell.begin();
   // LoadCell.setReverseOutput();
   unsigned long stabilizingtime = 2000; // tare preciscion can be improved by adding a few seconds of stabilizing time
-  boolean _tare = false;                // set this to false if you don't want tare to be performed in the next step
+  boolean _tare = true;                // set this to false if you don't want tare to be performed in the next step
   LoadCell.start(stabilizingtime, _tare);
   if (LoadCell.getTareTimeoutFlag())
   {
