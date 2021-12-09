@@ -9,9 +9,9 @@ min_pwm = "0"
 max_pwm = "256"
 steps = 16
 calibration_factor = 696.0
-tare = 5
+tare = -8.245683452922070e+02
 
-def plot_data():
+def plot_data(run = "r", freq = "30Hz", min_pwm = "0", max_pwm = "256", steps = 16, calibration_factor = 696.0, tare = 5):
     datas = "../freq_experiment/high_frequency_results/"+run+"_"+freq+"_"+min_pwm+"_"+max_pwm+"_"+str(steps)+"step.txt"
 
     read_data = loadtxt(datas)
