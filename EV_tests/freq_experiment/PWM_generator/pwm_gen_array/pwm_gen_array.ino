@@ -22,7 +22,10 @@ byte portd_supp;
 
 #ifdef HIGH_FREQUENCY
 #define DELAY 2000
-byte pwm_real;
+//30Hz
+//const byte  pwm_reals[] = {0,31,47,48+15,64+15,80+15,96+15,112+15,128+15,144+15,160+15,176+15,192+15,208+15,224+15,255};
+//122Hz
+const byte pwm_reals[] = {0,224,227,228,229,230,231,232,233,234,235,236,239,242,245,255};
 #else
 #define PWM_DELAY_STEP_MS 32 // 8 ms delay step = 8*2^bits ms period
 #define PWM_MAX 7
@@ -49,25 +52,19 @@ void setup()
 #if defined(HIGH_FREQUENCY) // HIGH FREQUENCY EXPERIMENT SECTION
   // TCCR2B = (TCCR2B & 0b11111000) | 0x05; // 245.10 [Hz]
 
-  // TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
-  TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
+   TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
+  //TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
   digitalWrite(PIN_EXPERIMENT, HIGH);
   // for (size_t i = 0, pwm_real = 210; pwm_real < 256; ++i, pwm_real += 3)
-  for (size_t i = 0, pwm_real = 0; i < 16; ++i, pwm_real += 16)
+  for (size_t i = 0; i < 16; ++i)
   {
     writePWMData(i);
-    if (i == 0)
-      analogWrite(PIN_OUTPUT, pwm_real);
-    else
-      analogWrite(PIN_OUTPUT, pwm_real + 15);
+    analogWrite(PIN_OUTPUT, pwm_reals[i]);
     delay(DELAY);
   }
-  for (size_t i = 15, pwm_real = 240; i >= 0; --i, pwm_real -= 16)
+  for (size_t i = 15; i >= 0; --i)
   {
-    if (i == 0)
-      analogWrite(PIN_OUTPUT, pwm_real);
-    else
-      analogWrite(PIN_OUTPUT, pwm_real + 15);
+    analogWrite(PIN_OUTPUT, pwm_reals[i]);
     writePWMData(i);
     delay(DELAY);
     if (i == 0)

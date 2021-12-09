@@ -31,12 +31,24 @@
  */
 
 #define PRINT_PWM
+#define PWM_8BIT
 #ifdef PRINT_PWM
 #define PWM0 37
 #define PWM1 36
 #define PWM2 35
 #define PWM3 34
+#ifdef PWM_8BIT
+#define PWM4 33
+#define PWM5 32
+#define PWM6 31
+#define PWM7 30
+#endif
+
+#ifdef PWM_8BIT
+#define PWM_MASK 0xFF
+#else
 #define PWM_MASK 0x0F
+#endif
 //#define PWM_SHIFT 0
 
 #endif
@@ -63,6 +75,12 @@ void setup()
   pinMode(PWM1, INPUT);
   pinMode(PWM2, INPUT);
   pinMode(PWM3, INPUT);
+#ifdef PWM_8BIT
+  pinMode(PWM4, INPUT);
+  pinMode(PWM5, INPUT);
+  pinMode(PWM6, INPUT);
+  pinMode(PWM7, INPUT);
+#endif
 #endif
   pinMode(PIN_EXPERIMENT, INPUT);
   Serial.begin(115200);
@@ -74,7 +92,7 @@ void setup()
   calibrationValue = 1.0; // uncomment this if you want to set this value in the sketch
   LoadCell.begin();
   // LoadCell.setReverseOutput();
-  unsigned long stabilizingtime = 2000; // tare preciscion can be improved by adding a few seconds of stabilizing time
+  unsigned long stabilizingtime = 10000; // tare preciscion can be improved by adding a few seconds of stabilizing time
   boolean _tare = true;                // set this to false if you don't want tare to be performed in the next step
   LoadCell.start(stabilizingtime, _tare);
   if (LoadCell.getTareTimeoutFlag())
