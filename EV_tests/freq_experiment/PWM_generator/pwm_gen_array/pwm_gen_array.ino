@@ -1,8 +1,13 @@
 #define HIGH_FREQUENCY
+#define RANDOM_STEPS
 //#define DEBUG_LOG
 #include <Arduino.h>
 #define PRINT_PWM
 
+
+#ifdef RANDOM_STEPS
+#define STEPS_COUNT 100
+#endif
 #ifdef PRINT_PWM
 #define PWM0 4
 #define PWM1 5
@@ -21,11 +26,11 @@ byte portd_supp;
 #define PIN_EXPERIMENT 2
 
 #ifdef HIGH_FREQUENCY
-#define DELAY 2000
+#define DELAY 500
 //30Hz
-//const byte  pwm_reals[] = {0,31,47,48+15,64+15,80+15,96+15,112+15,128+15,144+15,160+15,176+15,192+15,208+15,224+15,255};
+//const byte pwm_reals[] = {0,82,94,102,110,119,128,141,151,164,179,194,211,228,246,255};
 //122Hz
-const byte pwm_reals[] = {0,224,227,228,229,230,231,232,233,234,235,236,239,242,245,255};
+const byte pwm_reals[] = {0,233,234,235,236,237,238,239,240,241,242,243,244,245,248,255};
 #else
 #define PWM_DELAY_STEP_MS 32 // 8 ms delay step = 8*2^bits ms period
 #define PWM_MAX 7
@@ -52,10 +57,21 @@ void setup()
 #if defined(HIGH_FREQUENCY) // HIGH FREQUENCY EXPERIMENT SECTION
   // TCCR2B = (TCCR2B & 0b11111000) | 0x05; // 245.10 [Hz]
 
-   TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
+  TCCR2B = (TCCR2B & 0b11111000) | 0x06;   // 122.55 [Hz]
   //TCCR2B = (TCCR2B & 0b11111000) | 0x07; // 30.64 [Hz]
   digitalWrite(PIN_EXPERIMENT, HIGH);
-  // for (size_t i = 0, pwm_real = 210; pwm_real < 256; ++i, pwm_real += 3)
+  analogWrite(PIN_OUTPUT, 0);
+  #ifdef RANDOM_STEPS
+  size_t i;
+  for (int step = 0; step < STEPS_COUNT; step++)
+  {
+    i = random(0,16);
+    writePWMData(i);
+    analogWrite(PIN_OUTPUT, pwm_reals[i]);
+    delay(DELAY);
+  }
+  
+  #else
   for (size_t i = 0; i < 16; ++i)
   {
     writePWMData(i);
@@ -70,6 +86,7 @@ void setup()
     if (i == 0)
       break;
   }
+  #endif
   analogWrite(PIN_OUTPUT, 0);
   digitalWrite(PIN_EXPERIMENT, LOW);
 
