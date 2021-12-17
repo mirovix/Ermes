@@ -1,3 +1,6 @@
 [submodule "ermes_catkin_pi"]
 	path = ermes_catkin_pi
 	url = git@github.com:FedericoFavotto/ermes_catkin_pi.git
+[submodule "ermes_catkin_telemetry"]
+	path = ermes_catkin_telemetry
+	url = git@github.com:FedericoFavotto/ermes_catkin_telemetry.git
