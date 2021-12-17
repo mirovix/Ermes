@@ -57,6 +57,7 @@ Open the terminal in the raspberry and type:
 source /opt/ros/noetic/setup.bash
 export ROS_IP=192.168.43.177  
 export ROS_MASTER_URI=http://192.168.43.186:11311
+source ~/ros_catkin_ws/devel_isolated/setup.bash
 ```
 
 # Workspace
@@ -86,6 +87,11 @@ Recompile entire ros_catkin_ws:
 sudo src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/noetic -j1 -DPYTHON_EXECUTABLE=/usr/bin/python3
 ```
 
+Source the workspace:
+
+```
+source ~/ros_catkin_ws/devel_isolated/setup.bash
+```
 
 <!--Finish the document when useful command must be added-->
 
