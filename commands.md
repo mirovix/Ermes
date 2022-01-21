@@ -113,4 +113,5 @@ source devel/setup.bash
 #publish position base link:
 
 rosrun tf static_transform_publisher 0 0 0 0 0 0 1 map base_link 10
+rosrun tf static_transform_publisher 0 0 0.1 0 1.5708 0 base_link raspicam 1000
 
