@@ -79,6 +79,8 @@ int16_t sensorValues[3];
 
 void setup() {
   // Initialize ROS node handler, imu publisher and tf broadcaster
+  Serial.begin(230400);
+  nh.getHardware()->setBaud(230400);
   nh.initNode();
   nh.advertise(imu_pub);
   tfbroadcaster.init(nh);
