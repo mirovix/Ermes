@@ -11,8 +11,8 @@
 #include <Ixmatix_LSM9DS1.h>
 #include <ros.h>
 #include <sensor_msgs/Imu.h>
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/tf.h>
+// #include <tf/transform_broadcaster.h>
 
 
 /*
@@ -20,13 +20,13 @@
  */
 ros::NodeHandle nh;
 sensor_msgs::Imu imu_msg;
-ros::Publisher imu_pub("imu/data", &imu_msg);
+ros::Publisher imu_pub("/chaser/sensors/imu0", &imu_msg);
 
-geometry_msgs::TransformStamped tfs_msg;
-tf::TransformBroadcaster tfbroadcaster;
+// geometry_msgs::TransformStamped tfs_msg;
+// tf::TransformBroadcaster tfbroadcaster;
 
 // ROS Message Interval
-const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/30.f*1000; // 30Hz
+const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; // 30Hz
 unsigned long lastRefreshTime = 0;
 
 
@@ -83,7 +83,7 @@ void setup() {
   nh.getHardware()->setBaud(230400);
   nh.initNode();
   nh.advertise(imu_pub);
-  tfbroadcaster.init(nh);
+  // tfbroadcaster.init(nh);
   
   // Wait for sensor
   Wire.begin();
@@ -174,7 +174,7 @@ void loop() {
     // sensor_msgs/Imu Message
     // http://docs.ros.org/kinetic/api/sensor_msgs/html/msg/Imu.html
     // you can define frame_id with a representative name for your robot
-    imu_msg.header.frame_id =  "imu_second_floor_link";
+    imu_msg.header.frame_id =  "imu0";
     imu_msg.header.stamp = nh.now();
     imu_msg.orientation.x = imu.q[1];
     imu_msg.orientation.y = imu.q[2];
@@ -215,19 +215,19 @@ void loop() {
 
     // This will be useful for ROS to determine
     // where the IMU sensor is with respect to the base_link
-    tfs_msg.header.stamp    = nh.now();
-    tfs_msg.header.frame_id = "base_link";
-    tfs_msg.child_frame_id  = "imu_second_floor_link";
-    tfs_msg.transform.rotation.x = imu.q[1];
-    tfs_msg.transform.rotation.y = imu.q[2];
-    tfs_msg.transform.rotation.z = imu.q[3];
-    tfs_msg.transform.rotation.w = imu.q[0];
-    tfs_msg.transform.translation.x = 0.;
-    tfs_msg.transform.translation.y = 0.;
-    tfs_msg.transform.translation.z = 0.10;
+    // tfs_msg.header.stamp    = nh.now();
+    // tfs_msg.header.frame_id = "base_link";
+    // tfs_msg.child_frame_id  = "imu_0_laid";
+    // tfs_msg.transform.rotation.x = imu.q[1];
+    // tfs_msg.transform.rotation.y = imu.q[2];
+    // tfs_msg.transform.rotation.z = imu.q[3];
+    // tfs_msg.transform.rotation.w = imu.q[0];
+    // tfs_msg.transform.translation.x = 0.;
+    // tfs_msg.transform.translation.y = 0.;
+    // tfs_msg.transform.translation.z = 0.10;
     
-    // send transform to ROS
-    tfbroadcaster.sendTransform(tfs_msg);
+    // // send transform to ROS
+    // tfbroadcaster.sendTransform(tfs_msg);
 
     nh.spinOnce();
   }
