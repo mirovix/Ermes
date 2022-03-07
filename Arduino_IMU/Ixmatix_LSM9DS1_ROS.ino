@@ -41,8 +41,9 @@ uint32_t now = 0;
  */
 
 // xl = accelerometer ----- g  = gyroscope
-float xl_offsets[3] = { +0.04f, -0.10f, -0.01f  };
-float g_offsets[3]  = { -0.05f, +0.35f, -0.73f  };
+
+float xl_offsets[3] = { -1.86, 1.11, 0.59 };
+float g_offsets[3] = { -0.11, 0.01, -0.03 };
 
 // Magnetic calibration data - obtaied from Motion Sensor Calibration Tool
 // link - https://www.pjrc.com/store/prop_shield.html
