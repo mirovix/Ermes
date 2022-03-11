@@ -89,6 +89,7 @@ void loop() {
     Serial.print("Effective time:");
     Serial.println(millis()-start);
   }
+  
   delay(INTERVAL_ROS_MSG-(millis()-loop_start));
 }
 

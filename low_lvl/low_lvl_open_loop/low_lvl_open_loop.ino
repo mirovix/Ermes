@@ -6,11 +6,13 @@
 const int num_input = 6;
 const int num_ev = 8;
 const int dof = 6;
-int count = 0, length_input = 0;
-int i = 0;
-int count_cycles = 0, cycles = -1;
+uint8_t count = 0, length_input = 0;
+uint8_t i = 0;
+uint8_t count_cycles = 0, cycles = -1;
 bool flag_thruster_open = false;
 char input_serial[8];
+uint8_t axes = 0, acceleration = 0;
+bool error_check = false;
 
 //from 4 to 16 bit PWM
 int equalize[16] = {0,83,94,103,111,121,132,144,157,172,187,206,223,244,250,255};
@@ -24,9 +26,12 @@ unsigned long start,loop_start = 0;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; // 10Hz
 
 
+
 void setup() {
 
   Serial.begin(230400);
+
+  TCCR2B = (TCCR2B & 0b11111000) | 0x07; //30.65 Hz
 
   randomSeed(analogRead(0));
 
@@ -43,16 +48,21 @@ void setup() {
 
   //ev configuration
   ev_config[0] = "10011001"; //spo x
-  ev_config[1] = "11001100"; //spo y
-  ev_config[2] = "00001111"; //spo z
-  ev_config[3] = "00111100"; //rot x
-  ev_config[4] = "10010110"; //rot y
-  ev_config[5] = "01010101"; //rot z
-  ev_config[6] = "01100110"; //-spo x
-  ev_config[7] = "00110011"; //-spo y
-  ev_config[8] = "11110000"; //-spo z
-  ev_config[9] = "11000011"; //-rot x
-  ev_config[10] = "01101001"; //-rot y
+  ev_config[1] = "01100110"; //-spo x
+
+  ev_config[2] = "11001100"; //spo y
+  ev_config[3] = "00110011"; //-spo y
+
+  ev_config[4] = "00001111"; //spo z
+  ev_config[5] = "11110000"; //-spo z
+
+  ev_config[6] = "00111100"; //rot x
+  ev_config[7] = "11000011"; //-rot x
+
+  ev_config[8] = "10010110"; //rot y
+  ev_config[9] = "01101001"; //-rot y
+
+  ev_config[10] = "01010101"; //rot z
   ev_config[11] = "10101010"; //-rot z
 
 }
@@ -60,43 +70,36 @@ void setup() {
 void loop() {
   loop_start = millis();
   if(!flag_thruster_open){
-    if(Serial.available()){
-      flag_thruster_open = true;      
+    if(Serial.available()){    
+      input_serial[0] = '\0';  
       length_input = Serial.readBytes(input_serial, 8);
       input_serial[7] = '\0';
-      if(length_input>0){
-        
+      if(length_input == 8 and print_check_info(input_serial)){
+        flag_thruster_open = true;
         Serial.print("Input:");
         Serial.println(input_serial);
-        
-        cycles = (input_serial[4] - '0') * 100 + (input_serial[5] - '0') * 10 + input_serial[6] - '0';
-        cycles--;
-
         start = millis();
-        OpenThrusters(input_serial);
-        
-        print_info(input_serial);
+        OpenThrusters(input_serial); 
       }
     }
   }
   else
     count_cycles++;
   
-  //Serial.println(millis()-loop_start);  
-  
   if(count_cycles > cycles and cycles != -1){
     CloseThrusters(); 
     Serial.print("Effective time:");
     Serial.println(millis()-start);
   }
+
   delay(INTERVAL_ROS_MSG-(millis()-loop_start));
 }
 
 void OpenThrusters(char *input){
   Serial.print("Thrusters opened:");
   for(i=0;i<num_ev;i++)
-    if(ev_config[((input[0] - '0') * 10 + input[1] - '0')][i]-'0')
-      OpenSingleThruster(equalize[((input[2] - '0') * 10 + input[3] - '0')]);
+    if(ev_config[axes][i]-'0')
+      OpenSingleThruster(equalize[acceleration]);
    Serial.println();
 }
 
@@ -117,23 +120,44 @@ void CloseThrusters(){
   Serial.println("Thruster closed");
 }
 
-// Print the input recived
-void print_info(char *info){
-  Serial.print("Axis:");
-  Serial.print(info[0]);
-  Serial.print(info[1]);
+// Print and check the input recived
+bool print_check_info(char *info){
+  
+  error_check = true;
+
+  Serial.print("Ax:");
+  axes = (info[0] - '0') * 10.0 + info[1] - '0';
+  Serial.print(axes);
+  if(axes > 11 or axes < 0)
+    error_check = print_error("Axes is not between 11 and 0");
+  
   Serial.print(" --- Acceleration:");
-  Serial.print(info[2]);
-  Serial.print(info[3]);
+  acceleration = (info[2] - '0') * 10 + info[3] - '0';
+  Serial.print(acceleration);
+  if(acceleration > 15 or acceleration < 0)
+    error_check = print_error("Acceleration is not between 15 and 0");
+
   Serial.print(" --- Time[ms]:");
-  Serial.println(((info[4] - '0') * 100.0 + (info[5] - '0') * 10.0 + info[6] - '0')*(INTERVAL_ROS_MSG));
+  cycles = (info[4] - '0') * 100.0 + (info[5] - '0') * 10.0 + info[6] - '0';
+  Serial.println(cycles*INTERVAL_ROS_MSG);
+  if(cycles > 220 or cycles < 1){
+    error_check = print_error("Cycles are over/under limit");
+    cycles = -1;
+  }
+  else
+    cycles--;
+
+  if(error_check)
+    return true;
+  else
+    return false;
 }
 
 // Function used to print the error
-void print_error(char *err)
+bool print_error(char *err)
 {
 	Serial.print("\n\n ERROR: ");
   Serial.print(err);
   Serial.print("\n\n");
-	return;
+	return false;
 }
