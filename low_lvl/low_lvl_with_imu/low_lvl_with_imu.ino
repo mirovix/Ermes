@@ -174,7 +174,7 @@ void loop() {
   digitalWrite(pinB, LOW);
   digitalWrite(pinA, HIGH);
 
-  //imus updating
+  //imus updating and sending information
   imuUpdate(imu1, aRes1, gRes1, mRes1, statusXL_G1, statusM1, newXLData1, newGData1, newMData1, sensorValues1,
   ax1, ay1, az1, gx1, gy1, gz1, mx1, my1, mz1, lastRefreshTime1, lastUpdate1, now1);
   imuPublish(imu1, gRes1, mRes1, ax1, ay1, az1, gx1, gy1, gz1, imu1_msg, imu1_pub, lastRefreshTime1, name_imu1);
