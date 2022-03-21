@@ -10,18 +10,19 @@
 */
 
 #include <Ixmatix_LSM9DS1.h>
+#include <ros.h>
 
 // ROS Message Interval
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/30.f*1000; // 30Hz
-unsigned long lastRefreshTime = 0;
 
 Ixmatix_LSM9DS1 imu1;
 Ixmatix_LSM9DS1 imu2;
 
 // deltat variables
-int32_t lastUpdate = 0; 
-uint32_t now = 0;
-
+int pinA = 12, pinB = 13;
+unsigned long lastRefreshTime1 = 0, lastRefreshTime2 = 0;
+int32_t lastUpdate1, lastUpdate2 = 0; 
+uint32_t now1 = 0, now2 = 0;
 
 // xl = accelerometer ----- g  = gyroscope
 float xl_offsets[3] = { +0.04f, -0.10f, -0.01f  };
@@ -52,24 +53,24 @@ char name_imu2[] = "Imu2: ";
 void setup() {
 
   Serial.begin(230400);
-
+  Wire.begin();
   //chipselect between imu1 and imu2
-  pinMode(7, OUTPUT);
-  pinMode(6, OUTPUT);
-  digitalWrite(7, LOW);
-  digitalWrite(6, HIGH);
+  pinMode(pinB, OUTPUT);
+  pinMode(pinA, OUTPUT);
+  digitalWrite(pinB, LOW);
+  digitalWrite(pinA, HIGH);
 
   //setup the frist imu
   imuSetup(imu1, aRes1, gRes1);
 
-  digitalWrite(6, LOW);
-  digitalWrite(7, HIGH);
+  digitalWrite(pinA, LOW);
+  digitalWrite(pinB, HIGH);
 
   //setup the second imu
   imuSetup(imu2, aRes2, gRes2);
 
-  digitalWrite(7, LOW);
-  digitalWrite(6, HIGH);
+  digitalWrite(pinB, LOW);
+  digitalWrite(pinA, HIGH);
 
   Serial.print("aOff: ");
   Serial.print(xl_offsets[0], 3); Serial.print(" ");
@@ -85,7 +86,6 @@ void imuSetup(Ixmatix_LSM9DS1 &imu, float &aRes, float &gRes){
   Serial.println("Waiting for LSM9DS1");
   
   // Wait for sensor
-  Wire.begin();
   while (!imu.isLSM9DS1Ready());
 
   // sensor is ready
@@ -117,28 +117,31 @@ void imuSetup(Ixmatix_LSM9DS1 &imu, float &aRes, float &gRes){
 
 void loop() {
  
-  digitalWrite(7, LOW);
-  digitalWrite(6, HIGH);
+  digitalWrite(pinB, LOW);
+  digitalWrite(pinA, HIGH);
 
   //loop for the frist imu
   imuLoop(imu1, aRes1, gRes1, statusXL_G1, newXLData1, newGData1, sensorValues1,
-  ax1, ay1, az1, gx1, gy1, gz1, ax_1, ay_1, az_1, gx_1, gy_1, gz_1, name_imu1);
+  ax1, ay1, az1, gx1, gy1, gz1, ax_1, ay_1, az_1, gx_1, gy_1, gz_1, name_imu1,
+  lastRefreshTime1, lastUpdate1, now1);
 
-  digitalWrite(6, LOW);
-  digitalWrite(7, HIGH);
+  digitalWrite(pinA, LOW);
+  digitalWrite(pinB, HIGH);
 
   //loop for the second imu
   imuLoop(imu2, aRes2, gRes2, statusXL_G2, newXLData2, newGData2, sensorValues2,
-  ax2, ay2, az2, gx2, gy2, gz2, ax_2, ay_2, az_2, gx_2, gy_2, gz_2, name_imu2);
+  ax2, ay2, az2, gx2, gy2, gz2, ax_2, ay_2, az_2, gx_2, gy_2, gz_2, name_imu2,
+  lastRefreshTime2, lastUpdate2, now2);
 
-  digitalWrite(7, LOW);
-  digitalWrite(6, HIGH);
+  digitalWrite(pinB, LOW);
+  digitalWrite(pinA, HIGH);
 }
 
 void imuLoop(Ixmatix_LSM9DS1 &imu, float &aRes, float &gRes, uint8_t &statusXL_G, uint8_t &newXLData,
 uint8_t &newGData, int16_t *sensorValues,
 float &ax, float &ay, float &az, float &gx, float &gy, float &gz,
-int16_t &ax_, int16_t &ay_, int16_t &az_, int16_t &gx_, int16_t &gy_, int16_t &gz_, char *name){
+int16_t &ax_, int16_t &ay_, int16_t &az_, int16_t &gx_, int16_t &gy_, int16_t &gz_, char *name,
+unsigned long &lastRefreshTime, int32_t &lastUpdate, uint32_t &now){
   
   // Read accelerometer and gyroscope register status from sensor
   imu.readI2C(LSM9DS1_ADDR_XG, LSM9DS1_R_XG_STATUS_REG, 1, &statusXL_G);
