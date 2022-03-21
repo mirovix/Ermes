@@ -133,7 +133,7 @@ void setup() {
 }
 
 void loop() {
-  if(false){
+  if(!flag_thruster_open){
     if(Serial.available()){
       flag_thruster_open = true;      
       length_input = Serial.readBytes(input_serial, 8);
@@ -357,7 +357,7 @@ unsigned long &lastRefreshTime, char *name)
 
     // send imu_msg to ros
     //imu_pub.publish(&imu_msg);
-    Serial.println(millis()-lastRefreshTime);
+    //Serial.println(millis()-lastRefreshTime);
     lastRefreshTime = millis();
     nh.spinOnce();
   }
