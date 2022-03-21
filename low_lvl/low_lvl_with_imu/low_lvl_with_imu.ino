@@ -14,6 +14,7 @@ int i = 0;
 int count_cycles = 0, cycles = -1;
 bool flag_thruster_open = false;
 char input_serial[8];
+int pinA = 12, pinB = 13;
 
 //from 4 to 16 bit PWM
 int equalize[16] = {0,83,94,103,111,121,132,144,157,172,187,206,223,244,250,255};
@@ -72,9 +73,6 @@ float ax1, ay1, az1, ax2, ay2, az2;
 float gx1, gy1, gz1, gx2, gy2, gz2;
 float mx1, my1, mz1, mx2, my2, mz2;
 
-int16_t ax_1, ay_1, az_1, ax_2, ay_2, az_2;
-int16_t gx_1, gy_1, gz_1, gx_2, gy_2, gz_2;
-
 uint8_t statusXL_G1, statusXL_G2;
 uint8_t statusM1, statusM2;
 
@@ -99,11 +97,23 @@ void setup() {
 
   Wire.begin();
 
+  //chipselect between imu1 and imu2
+  pinMode(pinB, OUTPUT);
+  pinMode(pinA, OUTPUT);
+  digitalWrite(pinB, LOW);
+  digitalWrite(pinA, HIGH);
+
   //setup imu1
   imuSetup(imu1, aRes1, gRes1, mRes1);
-  //setup imu2
-  //imuSetup(imu2, aRes2, gRes2, mRes2);
 
+  digitalWrite(pinA, LOW);
+  digitalWrite(pinB, HIGH);
+
+  //setup imu2
+  imuSetup(imu2, aRes2, gRes2, mRes2);
+
+  digitalWrite(pinB, LOW);
+  digitalWrite(pinA, HIGH);
 
   //leds
   pinMode(2, OUTPUT);
@@ -133,7 +143,7 @@ void setup() {
 }
 
 void loop() {
-  if(!flag_thruster_open){
+  if(false){//!flag_thruster_open
     if(Serial.available()){
       flag_thruster_open = true;      
       length_input = Serial.readBytes(input_serial, 8);
@@ -161,19 +171,22 @@ void loop() {
     Serial.println(millis()-start);
   }
 
+  digitalWrite(pinB, LOW);
+  digitalWrite(pinA, HIGH);
+
   //imus updating
   imuUpdate(imu1, aRes1, gRes1, mRes1, statusXL_G1, statusM1, newXLData1, newGData1, newMData1, sensorValues1,
   ax1, ay1, az1, gx1, gy1, gz1, mx1, my1, mz1, lastRefreshTime1, lastUpdate1, now1);
-  //imuUpdate(imu2, aRes2, gRes2, mRes2, statusXL_G2, statusM2, newXLData2, newGData2, newMData2, sensorValues2,
-  //ax2, ay2, az2, gx2, gy2, gz2, mx2, my2, mz2, lastRefreshTime2, lastUpdate2, now2); 
-
-  //delay(INTERVAL_ROS_MSG-(millis()-loop_start));
-  //check and publish the msgs
   imuPublish(imu1, gRes1, mRes1, ax1, ay1, az1, gx1, gy1, gz1, imu1_msg, imu1_pub, lastRefreshTime1, name_imu1);
-  //imuPublish(imu2, gRes2, mRes2, ax2, ay2, az2, gx2, gy2, gz2, imu2_msg, imu2_pub, lastRefreshTime2, name_imu2);
+  
+  digitalWrite(pinA, LOW);
+  digitalWrite(pinB, HIGH);
+
+  imuUpdate(imu2, aRes2, gRes2, mRes2, statusXL_G2, statusM2, newXLData2, newGData2, newMData2, sensorValues2,
+  ax2, ay2, az2, gx2, gy2, gz2, mx2, my2, mz2, lastRefreshTime2, lastUpdate2, now2);   
+  imuPublish(imu2, gRes2, mRes2, ax2, ay2, az2, gx2, gy2, gz2, imu2_msg, imu2_pub, lastRefreshTime2, name_imu2);
   //Serial.print("Effective time:");
   //Serial.println(millis()-loop_start);
-  
 }
 
 void OpenThrusters(char *input){
@@ -356,7 +369,7 @@ unsigned long &lastRefreshTime, char *name)
     // indicate a "covariance unknown"
 
     // send imu_msg to ros
-    //imu_pub.publish(&imu_msg);
+    imu_pub.publish(&imu_msg);
     //Serial.println(millis()-lastRefreshTime);
     lastRefreshTime = millis();
     nh.spinOnce();
