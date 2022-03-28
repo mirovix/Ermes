@@ -1,6 +1,8 @@
 #include <Ixmatix_LSM9DS1.h>
 #include <ros.h>
 #include <sensor_msgs/Imu.h>
+#include <std_msgs/String.h>
+#include <StackArray.h>
 
 //GLOBAL VARIABLES
 //[0-5] positive axis [6-11] negative axis
@@ -13,7 +15,17 @@ int count = 0, length_input = 0;
 int i = 0;
 int count_cycles = 0, cycles = -1;
 bool flag_thruster_open = false;
-char input_serial[8];
+char input_serial[80];
+char log_msg[50];
+
+struct chars{
+  char input_char[8];
+};
+StackArray<chars> inputs;
+chars input;
+
+
+//pins for swithing imus
 int pinA = 12, pinB = 13;
 
 //from 4 to 16 bit PWM
@@ -85,12 +97,23 @@ int16_t sensorValues1[3], sensorValues2[3];
 char name_imu1[] = "imu1";
 char name_imu2[] = "imu2";
 
+void inputCallback(const std_msgs::String& msg){
+  input.input_char[0] = '\0';
+  sprintf(input.input_char,"%s", msg.data);
+  inputs.push(input);
+  log_msg[0] = '\0';
+  sprintf(log_msg,"New input recived :%s", msg.data);
+  nh.loginfo(log_msg);
+}
+
+ros::Subscriber<std_msgs::String> sub("input", &inputCallback);
 
 void setup() {
 
   Serial.begin(230400);
   nh.getHardware()->setBaud(230400);
   nh.initNode();
+  nh.subscribe(sub);
   nh.advertise(imu1_pub);
   nh.advertise(imu2_pub);
   randomSeed(analogRead(0));
@@ -143,32 +166,30 @@ void setup() {
 }
 
 void loop() {
-  if(false){//!flag_thruster_open
-    if(Serial.available()){
-      flag_thruster_open = true;      
-      length_input = Serial.readBytes(input_serial, 8);
-      input_serial[7] = '\0';
-      if(length_input>0){
-        
-        Serial.print("Input:");
-        Serial.println(input_serial);
-        
-        cycles = (input_serial[4] - '0') * 100 + (input_serial[5] - '0') * 10 + input_serial[6] - '0';
+  if(!flag_thruster_open){//!flag_thruster_open
+    if(!inputs.isEmpty()){
 
-        start = millis();
-        OpenThrusters(input_serial);
+      flag_thruster_open = true;  
+      input_serial[0] = '\0';
+      sprintf(input_serial,"%s", inputs.pop().input_char);    
+      
+      log_msg[0] = '\0';
+      sprintf(log_msg,"Current input :%s", input_serial);
+      nh.loginfo(log_msg);
         
-        print_info(input_serial);
-      }
+      cycles = (input_serial[4] - '0') * 100 + (input_serial[5] - '0') * 10 + input_serial[6] - '0';
+
+      start = millis();
+      OpenThrusters(input_serial);
+        
+      //print_info(input_serial);
     }
   }
-  //else
-  //  count_cycles++;
-  
   if(((millis() - start) > cycles*INTERVAL_ROS_MSG) and cycles != -1){
     CloseThrusters(); 
-    Serial.print("Effective time:");
-    Serial.println(millis()-start);
+    log_msg[0] = '\0';
+    sprintf(log_msg,"Effective time :%d", (millis()-start));
+    nh.loginfo(log_msg);
   }
 
   digitalWrite(pinB, LOW);
@@ -185,24 +206,22 @@ void loop() {
   imuUpdate(imu2, aRes2, gRes2, mRes2, statusXL_G2, statusM2, newXLData2, newGData2, newMData2, sensorValues2,
   ax2, ay2, az2, gx2, gy2, gz2, mx2, my2, mz2, lastRefreshTime2, lastUpdate2, now2);   
   imuPublish(imu2, gRes2, mRes2, ax2, ay2, az2, gx2, gy2, gz2, imu2_msg, imu2_pub, lastRefreshTime2, name_imu2);
-  //Serial.print("Effective time:");
-  //Serial.println(millis()-loop_start);
+
+  nh.spinOnce();
 }
 
 void OpenThrusters(char *input){
-  Serial.print("Thrusters opened:");
+  nh.loginfo("Thrusters opened:");
   for(i=0;i<num_ev;i++)
     if(ev_config[((input[0] - '0') * 10 + input[1] - '0')][i]-'0')
       OpenSingleThruster(equalize[((input[2] - '0') * 10 + input[3] - '0')]);
-   Serial.println();
 }
 
 void OpenSingleThruster(uint8_t acc){
   digitalWrite(i+2, HIGH);
-  Serial.print("--- Thruster:");
-  Serial.print(i);
-  Serial.print(" Acc:");
-  Serial.print(acc);
+  log_msg[0] = '\0';
+  sprintf(log_msg,"--- Thruster:%d Acc:%d",i,acc);
+  nh.loginfo(log_msg);
 }
 
 void CloseThrusters(){
@@ -211,28 +230,23 @@ void CloseThrusters(){
   count_cycles = 0;
   cycles = -1;
   flag_thruster_open = false;
-  Serial.println("Thruster closed");
+  nh.loginfo("Thruster closed");
 }
 
 // Print the input recived
 void print_info(char *info){
-  Serial.print("Axis:");
-  Serial.print(info[0]);
-  Serial.print(info[1]);
-  Serial.print(" --- Acceleration:");
-  Serial.print(info[2]);
-  Serial.print(info[3]);
-  Serial.print(" --- Time[ms]:");
-  Serial.println(((info[4] - '0') * 100.0 + (info[5] - '0') * 10.0 + info[6] - '0')*(INTERVAL_ROS_MSG));
+  log_msg[0] = '\0';
+  sprintf(log_msg,"Axis: %d%d",info[0],info[1]);
+  sprintf(log_msg," --- Acceleration: %d%d",info[2],info[3]);
+  sprintf(log_msg," --- Time[ms]: %d",(cycles*INTERVAL_ROS_MSG));
+  nh.loginfo(log_msg);
 }
 
 // Function used to print the error
-void print_error(char *err)
-{
-	Serial.print("\n\n ERROR: ");
-  Serial.print(err);
-  Serial.print("\n\n");
-	return;
+void print_error(char *err){
+  log_msg[0] = '\0';
+  sprintf(log_msg,"\n\n ERROR: %s \n\n",err);
+	nh.loginfo(log_msg);
 }
 
 void imuSetup(Ixmatix_LSM9DS1 &imu, float &aRes, float &gRes, float &mRes){
