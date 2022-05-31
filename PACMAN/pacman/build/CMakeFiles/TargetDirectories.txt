@@ -1,0 +1,3 @@
+/home/pi/projects/pacman/build/CMakeFiles/edit_cache.dir
+/home/pi/projects/pacman/build/CMakeFiles/rebuild_cache.dir
+/home/pi/projects/pacman/build/CMakeFiles/pacman_exe.dir

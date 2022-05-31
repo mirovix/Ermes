@@ -1,0 +1,3 @@
+/media/pi/USB_CUBE1/pacman_test_reinit_pattern/build/CMakeFiles/edit_cache.dir
+/media/pi/USB_CUBE1/pacman_test_reinit_pattern/build/CMakeFiles/rebuild_cache.dir
+/media/pi/USB_CUBE1/pacman_test_reinit_pattern/build/CMakeFiles/pacman_exe.dir
