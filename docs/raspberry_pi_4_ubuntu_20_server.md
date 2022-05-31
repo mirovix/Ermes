@@ -94,7 +94,21 @@ start_x=1
 Put the SD in the raspberry and restart. Now it should work.
 
 
+## Install rosserial for arduino
 
+
+```
+sudo apt install ros-noetic-rosserial-arduino ros-noetic-rosserial
+```
+Install also suggested package:
+
+```
+sudo apt install arduino-mk dfu-programmer avrdude-doc gcc-doc
+```
+To run rosserial node:
+```
+rosrun rosserial_arduino serial_node.py _port:=/dev/ttyACM0 _baud:=230400
+```
 
 
 ## Conclusions

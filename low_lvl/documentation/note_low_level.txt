@@ -1,0 +1,18 @@
+Intro:
+Hard Real Time ||| controllo UN asse alla volta
+Manca: controllo in retroazione
+
+Schema:
+RB >>> (seriale 252600) >>> ARDUINO(con: Imu1, Imu2, 3 sensori, 8 ev)
+
+PseudoCode:
+
+input >>> stringa (asse, accelerazione, cicli) (e.g. '0' '14' '5') ||| 3 bit + 4 bit + 8 bit + 1 bit (asse, accelerazione, cicli, controllo) N.B. MAX cicli con 10Hz >> 220 
+
+time arduino >>> delay : non utilizzabile in quanto non per forza rispecchia la frequenza ricercata
+
+Accendo ev >>> in base alla configurazione e verifco tramite un if nid.
+
+Spengo ev >>> devono rimanere spente
+
+time arduino >>> IMPORTANTE: Verificare se durante il while(wait 10 hz) gli input vengono messi in coda
