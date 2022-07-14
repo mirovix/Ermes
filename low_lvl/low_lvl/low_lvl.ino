@@ -26,7 +26,7 @@ const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; // 10Hz
 
 void setup() {
 
-  Serial.begin(230400);
+  Serial.begin(115200);
 
   randomSeed(analogRead(0));
 

@@ -2,7 +2,7 @@
 #include <ros.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/String.h>
-#include <StackArray.h>
+#include <QueueArray.h>
 
 //GLOBAL VARIABLES
 //[0-5] positive axis [6-11] negative axis
@@ -21,8 +21,7 @@ char log_msg[50];
 struct chars{
   char input_char[8];
 };
-StackArray<chars> inputs;
-chars input;
+QueueArray<chars> inputs;
 
 
 //pins for swithing imus
@@ -98,9 +97,9 @@ char name_imu1[] = "imu1";
 char name_imu2[] = "imu2";
 
 void inputCallback(const std_msgs::String& msg){
-  input.input_char[0] = '\0';
+  chars input;
   sprintf(input.input_char,"%s", msg.data);
-  inputs.push(input);
+  inputs.enqueue(input);
   log_msg[0] = '\0';
   sprintf(log_msg,"New input recived :%s", msg.data);
   nh.loginfo(log_msg);
@@ -171,7 +170,7 @@ void loop() {
 
       flag_thruster_open = true;  
       input_serial[0] = '\0';
-      sprintf(input_serial,"%s", inputs.pop().input_char);    
+      sprintf(input_serial,"%s", inputs.dequeue().input_char);    
       
       log_msg[0] = '\0';
       sprintf(log_msg,"Current input :%s", input_serial);
