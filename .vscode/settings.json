@@ -77,6 +77,8 @@
         "dense": "cpp",
         "eigenvalues": "cpp",
         "csignal": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "future": "cpp",
+        "codecvt": "cpp"
     }
 }
