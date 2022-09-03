@@ -13,9 +13,10 @@
 
 geometry_msgs::Pose state_cam;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
-char serialPortFilename[] = "/dev/ttyUSB1";
+char serialPortFilename[] = "/dev/ttyUSB0";
+int fd = open(serialPortFilename, O_RDWR | O_NOCTTY | O_SYNC);
 
-int set_interface_attribs (int fd, int speed, int parity){
+int setInterfaceAttribs (int fd, int speed, int parity){
   struct termios tty;
   if (tcgetattr (fd, &tty) != 0)
   {
@@ -53,7 +54,7 @@ int set_interface_attribs (int fd, int speed, int parity){
   return 0;
 }
 
-void set_blocking (int fd, int should_block){
+void setBlocking (int fd, int should_block){
   struct termios tty;
   memset (&tty, 0, sizeof tty);
   if (tcgetattr (fd, &tty) != 0)
@@ -67,6 +68,7 @@ void set_blocking (int fd, int should_block){
 }
 
 void sendCommand(int axis, int cylces){
+
   ROS_INFO("axis %d cycles %d", axis, cylces);
 
   size_t n_cycles = 3, n_axis = 2;
@@ -79,17 +81,8 @@ void sendCommand(int axis, int cylces){
   char input[s.length() + 1];
   strcpy(input, s.c_str());
 
-  int fd = open(serialPortFilename, O_RDWR | O_NOCTTY | O_SYNC);
-  if (fd < 0)
-  {
-      ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
-      return;
-  }
-
-  set_interface_attribs (fd, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
-  set_blocking (fd, 0);                    // set no blocking
-
   write (fd, input, sizeof(input));
+  //std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+85));
   sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
 }
 
@@ -97,7 +90,7 @@ void controlSequence(){
   //def ranges and weights
   std::vector<double> range_ori = {0.5, 0.5, 0.5};
   std::vector<double> range_pos = {0.5, 0.5};
-  double w_ori = 6, w_pos = 6, w_pos_x = 5;
+  double w_ori = 2, w_pos = 2, w_pos_x = 5;
 
   //init orientation (alfa, beta, teta)
   //TODO: init
@@ -116,31 +109,39 @@ void controlSequence(){
   state.push_back(state_cam.position.x);
   state.push_back(state_cam.position.y);
   state.push_back(state_cam.position.z);
-  state.push_back(roll);
+  state.push_back(0.0);
   state.push_back(pitch);
-  state.push_back(yaw);
+  state.push_back(0.0);
 
   for(int i=0; i<6; i++)
     ROS_INFO("I %d heard: [%f]", i, state[i]);
   
   //check orientation
   for(int pos_ori = 3; pos_ori < 6; pos_ori++){
-    if(state[pos_ori] > range_ori[pos_ori-3])
+    if(state[pos_ori] > range_ori[pos_ori-3]){
       sendCommand(pos_ori, int(abs(w_ori*state[pos_ori]))+1);
+      ROS_INFO("value %f", state[pos_ori]);
       return;
-    if(state[pos_ori] < -range_ori[pos_ori-3])  
+    }
+    if(state[pos_ori] < -range_ori[pos_ori-3]){ 
       sendCommand(pos_ori+6, int(abs(w_ori*state[pos_ori]))+1);
+      ROS_INFO("value %f", state[pos_ori]);
       return;
+    }
   }
 
   //check position y and z
   for(int pos = 1; pos < 3; pos++){
-    if(state[pos] > range_pos[pos-1])
+    if(state[pos] > range_pos[pos-1]){
       sendCommand(pos, int(abs(w_pos*state[pos]))+1);
+      ROS_INFO("value %f", state[pos]);
       return;
-    if(state[pos] < -range_pos[pos-1])  
+    }
+    if(state[pos] < -range_pos[pos-1]){
       sendCommand(pos+6, int(abs(w_pos*state[pos]))+1);
+      ROS_INFO("value %f", state[pos]);
       return;
+    }
   }
 
   //decrease position along x
@@ -148,7 +149,7 @@ void controlSequence(){
 
 }
 
-void PoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
+void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
   //ROS_INFO("I heard: [%f]", msg->pose.pose.position.x);
   state_cam = msg->pose.pose;
   //ROS_INFO("I heard: [%f]", state_cam.position.x);
@@ -158,6 +159,13 @@ void PoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 int main(int argc, char** argv){
   ros::init(argc, argv, "mid_lvl");
   ros::NodeHandle cam;
-  ros::Subscriber sub = cam.subscribe("/chaser/sensors/pose_from_tag_bundle", 1000, PoseCallback);
+
+  setInterfaceAttribs (fd, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
+  setBlocking (fd, 0);                    // set no blocking
+  if (fd < 0){
+      ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
+      exit(0);
+  }
+  ros::Subscriber sub = cam.subscribe("/chaser/sensors/pose_from_tag_bundle", 1000, poseCallback);
   ros::spin();
 }
