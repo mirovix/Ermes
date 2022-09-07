@@ -1,0 +1,38 @@
+  //digitalWrite(PIN_EM, HIGH);
+  //delay(1000);
+
+  digitalWrite(PIN_POS1, HIGH);
+  delay(2000);
+  digitalWrite(PIN_POS1, LOW);
+  delay(10);
+
+  digitalWrite(PIN_POS2, HIGH);
+  delay(2000);
+  digitalWrite(PIN_POS2, LOW);
+  delay(10);
+
+  digitalWrite(PIN_EM, LOW);
+  delay(10000);
+
+
+
+
+
+
+
+  digitalWrite(PIN_POS1, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH);  
+  delay(2000);
+  digitalWrite(PIN_POS1, LOW);
+  digitalWrite(LED_BUILTIN, LOW);  
+  delay(100);
+
+  digitalWrite(PIN_POS2, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH); 
+  delay(2000);
+  digitalWrite(PIN_POS2, LOW);
+  digitalWrite(LED_BUILTIN, LOW); 
+  delay(10);
+
+ // digitalWrite(PIN_EM, LOW);
+  delay(1000);

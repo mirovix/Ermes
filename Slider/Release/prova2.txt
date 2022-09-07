@@ -1,0 +1,14 @@
+Logica:
+
+Se leggi START dal seriale
+
+	Finchè PIN POS COMPLETATA è low allora esegui la manovra 1 (rilascio)
+	Print inizio
+
+	end
+
+	Se il timer raggiunge tot
+		Rilascio magnetico
+	Print distacco
+	end
+end
