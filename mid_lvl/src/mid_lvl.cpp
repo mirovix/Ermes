@@ -6,13 +6,12 @@
 #include <errno.h> // Error integer and strerror() function
 #include <termios.h> // Contains POSIX terminal control definitions
 #include <unistd.h> // write(), read(), close()
-
+#include <chrono>
+#include <thread>
 //[0-5] positive axis [6-11] negative axis
 
 geometry_msgs::Pose state_cam;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
-char serialPortFilename[] = "/dev/ttyUSB0";
-int fd = open(serialPortFilename, O_RDWR | O_NOCTTY | O_SYNC);
 
 int setInterfaceAttribs (int fd, int speed, int parity){
   struct termios tty;
@@ -65,7 +64,7 @@ void setBlocking (int fd, int should_block){
     ROS_INFO("error %d setting term attributes", errno);
 }
 
-void sendCommand(int axis, int cylces){
+void sendCommand(int axis, int cylces, int fd){
 
   ROS_INFO("axis %d cycles %d", axis, cylces);
 
@@ -80,11 +79,11 @@ void sendCommand(int axis, int cylces){
   strcpy(input, s.c_str());
 
   write (fd, input, sizeof(input));
-  //std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+85));
-  sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+50));
+  //sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
 }
 
-void controlSequence(){
+void controlSequence(int fd){
   //def ranges and weights
   std::vector<double> range_ori = {1.5, 0.25, 1.5};
   std::vector<double> range_pos = {0.7, 0.7};
@@ -111,6 +110,7 @@ void controlSequence(){
   state.push_back(pitch);
   state.push_back(yaw );
 
+  //check if the values are not found
   for(int i=0; i<3; i++)
     if(state[i] == 0.0)
       return;
@@ -124,12 +124,12 @@ void controlSequence(){
   //check orientation
   for(int pos_ori = 3; pos_ori < 6; pos_ori++){
     if(state[pos_ori] > range_ori[pos_ori-3]){
-      sendCommand(pos_ori, int(abs(w_ori*state[pos_ori]))+1);
+      sendCommand(pos_ori, int(abs(w_ori*state[pos_ori]))+1, fd);
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
     if(state[pos_ori] < -range_ori[pos_ori-3]){ 
-      sendCommand(pos_ori+6, int(abs(w_ori*state[pos_ori]))+1);
+      sendCommand(pos_ori+6, int(abs(w_ori*state[pos_ori]))+1, fd);
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
@@ -138,19 +138,19 @@ void controlSequence(){
   //check position y and z
   for(int pos = 1; pos < 3; pos++){
     if(state[pos] > range_pos[pos-1]){
-      sendCommand(pos, int(abs(w_pos*state[pos]))+1);
+      sendCommand(pos, int(abs(w_pos*state[pos]))+1, fd);
       ROS_INFO("value %f", state[pos]);
       return;
     }
     if(state[pos] < -range_pos[pos-1]){
-      sendCommand(pos+6, int(abs(w_pos*state[pos]))+1);
+      sendCommand(pos+6, int(abs(w_pos*state[pos]))+1, fd);
       ROS_INFO("value %f", state[pos]);
       return;
     }
   }
 
   //decrease position along x
-  sendCommand(0, int(w_pos_x));
+  sendCommand(0, int(w_pos_x), fd);
 
 }
 
@@ -161,10 +161,14 @@ void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
   
 }
 
-int main(int argc, char** argv){
+int main(int argc, char* argv[]){
   ros::init(argc, argv, "mid_lvl");
   ros::NodeHandle cam;
-
+  if(argc < 2)
+    return 0;
+  char serialPortFilename[] = "/dev/tty";
+  strcat(serialPortFilename, argv[1]);
+  int fd = open(serialPortFilename, O_RDWR | O_NOCTTY | O_SYNC);
   setInterfaceAttribs (fd, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
   setBlocking (fd, 0);                    // set no blocking
   if (fd < 0){
@@ -176,7 +180,7 @@ int main(int argc, char** argv){
   while (ros::ok())
   {
     ros::spinOnce();
-    controlSequence();
+    controlSequence(fd);
     loop_rate.sleep();
   }
   
