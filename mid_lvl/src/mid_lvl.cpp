@@ -6,8 +6,6 @@
 #include <errno.h> // Error integer and strerror() function
 #include <termios.h> // Contains POSIX terminal control definitions
 #include <unistd.h> // write(), read(), close()
-#include <async_comm/serial.h>
-#include <async_comm/util/message_handler_ros.h>
 
 //[0-5] positive axis [6-11] negative axis
 
@@ -88,8 +86,8 @@ void sendCommand(int axis, int cylces){
 
 void controlSequence(){
   //def ranges and weights
-  std::vector<double> range_ori = {0.5, 0.5, 0.5};
-  std::vector<double> range_pos = {0.5, 0.5};
+  std::vector<double> range_ori = {1.5, 0.25, 1.5};
+  std::vector<double> range_pos = {0.7, 0.7};
   double w_ori = 2, w_pos = 2, w_pos_x = 5;
 
   //init orientation (alfa, beta, teta)
@@ -109,9 +107,16 @@ void controlSequence(){
   state.push_back(state_cam.position.x);
   state.push_back(state_cam.position.y);
   state.push_back(state_cam.position.z);
-  state.push_back(0.0);
+  state.push_back(roll);
   state.push_back(pitch);
-  state.push_back(0.0);
+  state.push_back(yaw );
+
+  for(int i=0; i<3; i++)
+    if(state[i] == 0.0)
+      return;
+  for(int i=3; i<6; i++)
+    if(isnan(state[i]))
+      return;
 
   for(int i=0; i<6; i++)
     ROS_INFO("I %d heard: [%f]", i, state[i]);
@@ -153,7 +158,7 @@ void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
   //ROS_INFO("I heard: [%f]", msg->pose.pose.position.x);
   state_cam = msg->pose.pose;
   //ROS_INFO("I heard: [%f]", state_cam.position.x);
-  controlSequence();
+  
 }
 
 int main(int argc, char** argv){
@@ -163,9 +168,16 @@ int main(int argc, char** argv){
   setInterfaceAttribs (fd, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
   setBlocking (fd, 0);                    // set no blocking
   if (fd < 0){
-      ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
-      exit(0);
+    ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
+    exit(0);
   }
   ros::Subscriber sub = cam.subscribe("/chaser/sensors/pose_from_tag_bundle", 1000, poseCallback);
-  ros::spin();
+  ros::Rate loop_rate(10);
+  while (ros::ok())
+  {
+    ros::spinOnce();
+    controlSequence();
+    loop_rate.sleep();
+  }
+  
 }
