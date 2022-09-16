@@ -12,6 +12,12 @@
 
 geometry_msgs::Pose state_cam;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
+//def ranges and weights
+std::vector<double> range_ori = {0.35, 0.35, 0.35};
+std::vector<double> range_pos = {0.7, 0.7};
+std::vector<double> defualt_ori = {1.57, -0.13, -3.14};
+std::vector<double> default_pos = {0.025, -0.012};
+double w_ori = 2, w_pos = 3, w_pos_x = 6;
 
 int setInterfaceAttribs (int fd, int speed, int parity){
   struct termios tty;
@@ -67,7 +73,6 @@ void setBlocking (int fd, int should_block){
 void sendCommand(int axis, int cylces, int fd){
 
   ROS_INFO("axis %d cycles %d", axis, cylces);
-
   size_t n_cycles = 3, n_axis = 2;
   std::ostringstream ss_cycles, ss_axis;
   
@@ -79,19 +84,11 @@ void sendCommand(int axis, int cylces, int fd){
   strcpy(input, s.c_str());
 
   write (fd, input, sizeof(input));
-  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+50));
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+175));
   //sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
 }
 
 void controlSequence(int fd){
-  //def ranges and weights
-  std::vector<double> range_ori = {1.5, 0.25, 1.5};
-  std::vector<double> range_pos = {0.7, 0.7};
-  double w_ori = 2, w_pos = 2, w_pos_x = 5;
-
-  //init orientation (alfa, beta, teta)
-  //TODO: init
-
   //check if state is found, [x, y, z, alfa, beta, theta]
   std::vector<double> state;
   tf::Quaternion q(
@@ -123,12 +120,14 @@ void controlSequence(int fd){
   
   //check orientation
   for(int pos_ori = 3; pos_ori < 6; pos_ori++){
-    if(state[pos_ori] > range_ori[pos_ori-3]){
+    //std::cout << defualt_ori[pos_ori]+range_ori[pos_ori-3] << std::endl;
+    //std::cout << state[pos_ori] << std::endl;
+    if(state[pos_ori] > defualt_ori[pos_ori-3]+range_ori[pos_ori-3]){
       sendCommand(pos_ori, int(abs(w_ori*state[pos_ori]))+1, fd);
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
-    if(state[pos_ori] < -range_ori[pos_ori-3]){ 
+    if(state[pos_ori] < defualt_ori[pos_ori-3]-range_ori[pos_ori-3]){ 
       sendCommand(pos_ori+6, int(abs(w_ori*state[pos_ori]))+1, fd);
       ROS_INFO("value %f", state[pos_ori]);
       return;
@@ -137,12 +136,12 @@ void controlSequence(int fd){
 
   //check position y and z
   for(int pos = 1; pos < 3; pos++){
-    if(state[pos] > range_pos[pos-1]){
+    if(state[pos] > default_pos[pos-1]+range_pos[pos-1]){
       sendCommand(pos, int(abs(w_pos*state[pos]))+1, fd);
       ROS_INFO("value %f", state[pos]);
       return;
     }
-    if(state[pos] < -range_pos[pos-1]){
+    if(state[pos] < default_pos[pos-1]-range_pos[pos-1]){
       sendCommand(pos+6, int(abs(w_pos*state[pos]))+1, fd);
       ROS_INFO("value %f", state[pos]);
       return;
