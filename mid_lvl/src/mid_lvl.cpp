@@ -8,16 +8,14 @@
 #include <unistd.h> // write(), read(), close()
 #include <chrono>
 #include <thread>
+#include <sys/stat.h>
 //[0-5] positive axis [6-11] negative axis
 
 geometry_msgs::Pose state_cam;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
 //def ranges and weights
-std::vector<double> range_ori = {0.35, 0.35, 0.35};
-std::vector<double> range_pos = {0.7, 0.7};
-std::vector<double> defualt_ori = {1.57, -0.13, -3.14};
-std::vector<double> default_pos = {0.025, -0.012};
-double w_ori = 2, w_pos = 3, w_pos_x = 6;
+std::vector<double> range_ori, range_pos, defualt_ori, default_pos;
+double w_ori, w_pos, w_pos_x;
 
 int setInterfaceAttribs (int fd, int speed, int parity){
   struct termios tty;
@@ -64,7 +62,7 @@ void setBlocking (int fd, int should_block){
     return;
 
   tty.c_cc[VMIN]  = should_block ? 1 : 0;
-  tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
+  tty.c_cc[VTIME] = 1;            // 0.5 seconds read timeout
 
   if (tcsetattr (fd, TCSANOW, &tty) != 0)
     ROS_INFO("error %d setting term attributes", errno);
@@ -161,12 +159,28 @@ void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 }
 
 int main(int argc, char* argv[]){
+  //args USB, range orientation, range position, w_orientation, w_position, w_x, default orientation, default position,
   ros::init(argc, argv, "mid_lvl");
   ros::NodeHandle cam;
   if(argc < 2)
     return 0;
+  else if(argc > 2){
+    range_ori = {std::atof(argv[2]), std::atof(argv[3]), std::atof(argv[4])};
+    range_pos = {std::atof(argv[5]), std::atof(argv[6])};
+    defualt_ori = {std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12])};
+    default_pos = {std::atof(argv[13]), std::atof(argv[14])};
+    w_ori = std::atof(argv[7]); w_pos = std::atof(argv[8]); w_pos_x = std::atof(argv[9]);
+  }
+  else{
+    range_ori = {0.35, 0.35, 0.35};
+    range_pos = {0.7, 0.7};
+    defualt_ori = {1.57, -0.13, -3.14};
+    default_pos = {0.025, -0.012};
+    w_ori = 2; w_pos = 3; w_pos_x = 6;
+  }
   char serialPortFilename[] = "/dev/tty";
   strcat(serialPortFilename, argv[1]);
+  int c_mod = chmod(serialPortFilename, S_IRWXU|S_IRWXG|S_IROTH|S_IWOTH);
   int fd = open(serialPortFilename, O_RDWR | O_NOCTTY | O_SYNC);
   setInterfaceAttribs (fd, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
   setBlocking (fd, 0);                    // set no blocking
