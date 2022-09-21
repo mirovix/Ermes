@@ -42,18 +42,18 @@ void setup() {
   pinMode(10, OUTPUT);
 
   //ev configuration
-  ev_config[0] = "10011001"; //spo x
-  ev_config[1] = "11001100"; //spo y
-  ev_config[2] = "00001111"; //spo z
-  ev_config[3] = "00111100"; //rot x
-  ev_config[4] = "10010110"; //rot y
-  ev_config[5] = "01010101"; //rot z
-  ev_config[6] = "01100110"; //-spo x
-  ev_config[7] = "00110011"; //-spo y
-  ev_config[8] = "11110000"; //-spo z
-  ev_config[9] = "11000011"; //-rot x
-  ev_config[10] = "01101001"; //-rot y
-  ev_config[11] = "10101010"; //-rot z
+  ev_config[0] = "11001100"; //spo x
+  ev_config[1] = "11110000"; //spo y
+  ev_config[2] = "01100110"; //spo z
+  ev_config[3] = "10010110"; //rot x
+  ev_config[4] = "10101010"; //rot y
+  ev_config[5] = "11000011"; //rot z
+  ev_config[6] = "00110011"; //-spo x
+  ev_config[7] = "00001111"; //-spo y
+  ev_config[8] = "10011001"; //-spo z
+  ev_config[9] = "01101001"; //-rot x
+  ev_config[10] = "01010101"; //-rot y
+  ev_config[11] = "00111100"; //-rot z
 
 }
 
