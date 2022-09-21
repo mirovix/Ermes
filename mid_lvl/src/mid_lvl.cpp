@@ -15,7 +15,8 @@ geometry_msgs::Pose state_cam;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
 //def ranges and weights
 std::vector<double> range_ori, range_pos, defualt_ori, default_pos;
-double w_ori, w_pos, w_pos_x;
+double w_ori, w_pos, w_pos_x, min_distance;
+int cylces_dec;
 
 int setInterfaceAttribs (int fd, int speed, int parity){
   struct termios tty;
@@ -72,7 +73,7 @@ void sendCommand(int axis, int cylces, int fd){
 
   ROS_INFO("axis %d cycles %d", axis, cylces);
   size_t n_cycles = 3, n_axis = 2;
-  std::ostringstream ss_cycles, ss_axis;
+  std::ostringstream ss_cycles, ss_cycles_dec, ss_axis, ss_axis_dec;
   
   ss_cycles << std::setw(n_cycles) << std::setfill('0') << std::to_string(cylces);
   ss_axis << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
@@ -80,9 +81,21 @@ void sendCommand(int axis, int cylces, int fd){
   std::string s = ss_axis.str() + "01" + ss_cycles.str();
   char input[s.length() + 1];
   strcpy(input, s.c_str());
-
   write (fd, input, sizeof(input));
-  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+175));
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+25));
+
+  if(axis > 5)
+    axis -= 6;
+  else
+    axis += 6;
+  ss_cycles_dec << std::setw(n_cycles) << std::setfill('0') << std::to_string(cylces_dec);
+  ss_axis_dec << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
+  ROS_INFO("axis %d cycles %d", axis, cylces_dec);
+  std::string s_dec = ss_axis_dec.str() + "01" + ss_cycles_dec.str();
+  char input_dec[s_dec.length() + 1];
+  strcpy(input_dec, s_dec.c_str());
+  write (fd, input_dec, sizeof(input_dec));
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces_dec*INTERVAL_ROS_MSG)+175));
   //sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
 }
 
@@ -147,7 +160,17 @@ void controlSequence(int fd){
   }
 
   //decrease position along x
-  sendCommand(0, int(w_pos_x), fd);
+  if(state[0] < min_distance){
+     ROS_INFO("***DONE***");
+     exit(0);
+  }
+  
+  if(state[0] < 0.08)
+    sendCommand(0, (int(w_pos_x)*0.35)+1, fd);
+  else if(state[0] < 0.14)
+    sendCommand(0, (int(w_pos_x)*0.65)+1, fd);
+  else 
+    sendCommand(0, int(w_pos_x), fd);
 
 }
 
@@ -160,6 +183,7 @@ void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 
 int main(int argc, char* argv[]){
   //args USB, range orientation, range position, w_orientation, w_position, w_x, default orientation, default position,
+  // USB0 range_ori_roll range_ori_pitch range_ori_yaw range_pos_y range_pos_z w_ori w_pos w_pos_x 
   ros::init(argc, argv, "mid_lvl");
   ros::NodeHandle cam;
   if(argc < 2)
@@ -170,14 +194,17 @@ int main(int argc, char* argv[]){
     defualt_ori = {std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12])};
     default_pos = {std::atof(argv[13]), std::atof(argv[14])};
     w_ori = std::atof(argv[7]); w_pos = std::atof(argv[8]); w_pos_x = std::atof(argv[9]);
+    cylces_dec = std::atof(argv[15]);
   }
   else{
-    range_ori = {0.35, 0.35, 0.35};
+    range_ori = {0.55, 0.55, 0.55};
     range_pos = {0.7, 0.7};
-    defualt_ori = {1.57, -0.13, -3.14};
+    defualt_ori = {1.57, -0.13, 3.14};
     default_pos = {0.025, -0.012};
-    w_ori = 2; w_pos = 3; w_pos_x = 6;
+    w_ori = 2; w_pos = 3; w_pos_x = 6; 
+    cylces_dec = 1;
   }
+  min_distance = 0.04;
   char serialPortFilename[] = "/dev/tty";
   strcat(serialPortFilename, argv[1]);
   int c_mod = chmod(serialPortFilename, S_IRWXU|S_IRWXG|S_IROTH|S_IWOTH);
