@@ -71,9 +71,11 @@ void setBlocking (int fd, int should_block){
 
 void sendCommand(int axis, int cylces, int fd){
 
-  ROS_INFO("axis %d cycles %d", axis, cylces);
   size_t n_cycles = 3, n_axis = 2;
-  std::ostringstream ss_cycles, ss_cycles_dec, ss_axis, ss_axis_dec;
+  std::ostringstream ss_cycles, ss_axis, ss_axis_dec;
+  cylces /= 2;
+
+  ROS_INFO("axis %d cycles %d", axis, cylces);
   
   ss_cycles << std::setw(n_cycles) << std::setfill('0') << std::to_string(cylces);
   ss_axis << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
@@ -82,20 +84,17 @@ void sendCommand(int axis, int cylces, int fd){
   char input[s.length() + 1];
   strcpy(input, s.c_str());
   write (fd, input, sizeof(input));
-  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+25));
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+50));
 
-  if(axis > 5)
-    axis -= 6;
-  else
-    axis += 6;
-  ss_cycles_dec << std::setw(n_cycles) << std::setfill('0') << std::to_string(cylces_dec);
+  if(axis > 5) axis -= 6;else axis += 6;
+
   ss_axis_dec << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
-  ROS_INFO("axis %d cycles %d", axis, cylces_dec);
-  std::string s_dec = ss_axis_dec.str() + "01" + ss_cycles_dec.str();
+  ROS_INFO("axis %d cycles %d", axis, cylces);
+  std::string s_dec = ss_axis_dec.str() + "01" + ss_cycles.str();
   char input_dec[s_dec.length() + 1];
   strcpy(input_dec, s_dec.c_str());
   write (fd, input_dec, sizeof(input_dec));
-  std::this_thread::sleep_for(std::chrono::milliseconds((cylces_dec*INTERVAL_ROS_MSG)+175));
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+175));
   //sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
 }
 
@@ -204,7 +203,7 @@ int main(int argc, char* argv[]){
     w_ori = 2; w_pos = 3; w_pos_x = 6; 
     cylces_dec = 1;
   }
-  min_distance = 0.04;
+  min_distance = 0.065;
   char serialPortFilename[] = "/dev/tty";
   strcat(serialPortFilename, argv[1]);
   int c_mod = chmod(serialPortFilename, S_IRWXU|S_IRWXG|S_IROTH|S_IWOTH);
