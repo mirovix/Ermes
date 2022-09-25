@@ -72,6 +72,9 @@ void setBlocking (int fd, int should_block){
 
 void sendCommand(int axis, int cylces, int fd){
 
+  if(cylces < 2)
+    cylces = 2;
+
   size_t n_cycles = 3, n_axis = 2;
   std::ostringstream ss_cycles, ss_axis, ss_axis_dec;
   cylces /= 2;
@@ -134,12 +137,12 @@ void controlSequence(int fd){
     //std::cout << defualt_ori[pos_ori]+range_ori[pos_ori-3] << std::endl;
     //std::cout << state[pos_ori] << std::endl;
     if(state[pos_ori] > defualt_ori[pos_ori-3]+range_ori[pos_ori-3]){
-      sendCommand(pos_ori, int(abs(w_ori*state[pos_ori]))+1, fd);
+      sendCommand(pos_ori, int(abs(w_ori*state[pos_ori])), fd);
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
     if(state[pos_ori] < defualt_ori[pos_ori-3]-range_ori[pos_ori-3]){ 
-      sendCommand(pos_ori+6, int(abs(w_ori*state[pos_ori]))+1, fd);
+      sendCommand(pos_ori+6, int(abs(w_ori*state[pos_ori])), fd);
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
@@ -148,12 +151,12 @@ void controlSequence(int fd){
   //check position y and z
   for(int pos = 1; pos < 3; pos++){
     if(state[pos] > default_pos[pos-1]+range_pos[pos-1]){
-      sendCommand(pos, int(abs(w_pos*state[pos]))+1, fd);
+      sendCommand(pos, int(abs(w_pos*state[pos])), fd);
       ROS_INFO("value %f", state[pos]);
       return;
     }
     if(state[pos] < default_pos[pos-1]-range_pos[pos-1]){
-      sendCommand(pos+6, int(abs(w_pos*state[pos]))+1, fd);
+      sendCommand(pos+6, int(abs(w_pos*state[pos])), fd);
       ROS_INFO("value %f", state[pos]);
       return;
     }
@@ -166,9 +169,9 @@ void controlSequence(int fd){
   }
   
   if(state[0] < 0.08)
-    sendCommand(0, (int(w_pos_x)*0.35)+1, fd);
+    sendCommand(0, (int(w_pos_x)*0.35), fd);
   else if(state[0] < 0.14)
-    sendCommand(0, (int(w_pos_x)*0.65)+1, fd);
+    sendCommand(0, (int(w_pos_x)*0.65), fd);
   else 
     sendCommand(0, int(w_pos_x), fd);
 
