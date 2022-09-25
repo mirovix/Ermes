@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <vector> 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <tf/tf.h>
 #include <fcntl.h> // Contains file controls like O_RDWR
 #include <errno.h> // Error integer and strerror() function
@@ -173,7 +174,8 @@ void controlSequence(int fd){
 
 }
 
-void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
+//geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg const nav_msgs::Odometry::ConstPtr& msg
+void poseCallback(geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
   //ROS_INFO("I heard: [%f]", msg->pose.pose.position.x);
   state_cam = msg->pose.pose;
   //ROS_INFO("I heard: [%f]", state_cam.position.x);
@@ -193,7 +195,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12])};
     default_pos = {std::atof(argv[13]), std::atof(argv[14])};
     w_ori = std::atof(argv[7]); w_pos = std::atof(argv[8]); w_pos_x = std::atof(argv[9]);
-    cylces_dec = std::atoi(argv[15]);
+    //cylces_dec = std::atoi(argv[15]);
   }
   else{
     range_ori = {0.55, 0.55, 0.55};
@@ -201,7 +203,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {1.57, -0.13, 3.14};
     default_pos = {0.025, -0.012};
     w_ori = 2; w_pos = 3; w_pos_x = 6; 
-    cylces_dec = 1;
+    //cylces_dec = 1;
   }
   min_distance = 0.065;
   char serialPortFilename[] = "/dev/tty";
@@ -214,6 +216,7 @@ int main(int argc, char* argv[]){
     ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
     exit(0);
   }
+  //odometry/filtered_map
   ros::Subscriber sub = cam.subscribe("/chaser/sensors/pose_from_tag_bundle", 1000, poseCallback);
   ros::Rate loop_rate(10);
   while (ros::ok())
