@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <vector> 
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/tf.h>
 #include <fcntl.h> // Contains file controls like O_RDWR
@@ -13,6 +14,7 @@
 //[0-5] positive axis [6-11] negative axis
 
 geometry_msgs::Pose state_cam;
+float x_tof = 1000;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
 //def ranges and weights
 std::vector<double> range_ori, range_pos, defualt_ori, default_pos;
@@ -168,8 +170,15 @@ void controlSequence(int fd){
      exit(0);
   }
   
-  if(state[0] < 0.08)
+  float value_to_check = 0.085;
+  if(state[0] < value_to_check){
+    if(x_tof < value_to_check){
+      //use tof
+      state[0] = x_tof;
+      ROS_INFO("TOF ON, value %f", x_tof);
+    }
     sendCommand(0, (int(w_pos_x)*0.35), fd);
+  }
   else if(state[0] < 0.14)
     sendCommand(0, (int(w_pos_x)*0.65), fd);
   else 
@@ -177,19 +186,22 @@ void controlSequence(int fd){
 
 }
 
-//geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg const nav_msgs::Odometry::ConstPtr& msg
-void poseCallback(geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
+//geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg
+void poseCallback(const nav_msgs::Odometry::ConstPtr& msg){
   //ROS_INFO("I heard: [%f]", msg->pose.pose.position.x);
   state_cam = msg->pose.pose;
-  //ROS_INFO("I heard: [%f]", state_cam.position.x);
-  
+  //ROS_INFO("I heard: [%f]", state_cam.position.x); 
+}
+
+void tofCallback(const geometry_msgs::PointStamped::ConstPtr& msg){
+  x_tof = msg->point.x;
 }
 
 int main(int argc, char* argv[]){
   //args USB, range orientation, range position, w_orientation, w_position, w_x, default orientation, default position,
   // USB0 range_ori_roll range_ori_pitch range_ori_yaw range_pos_y range_pos_z w_ori w_pos w_pos_x 
   ros::init(argc, argv, "mid_lvl");
-  ros::NodeHandle cam;
+  ros::NodeHandle mid_lvl;
   if(argc < 2)
     return 0;
   else if(argc > 2){
@@ -201,14 +213,14 @@ int main(int argc, char* argv[]){
     //cylces_dec = std::atoi(argv[15]);
   }
   else{
-    range_ori = {0.55, 0.55, 0.55};
+    range_ori = {0.6, 0.6, 0.6};
     range_pos = {0.7, 0.7};
     defualt_ori = {1.57, -0.13, 3.14};
     default_pos = {0.025, -0.012};
     w_ori = 2; w_pos = 3; w_pos_x = 6; 
     //cylces_dec = 1;
   }
-  min_distance = 0.065;
+  min_distance = 0.04;
   char serialPortFilename[] = "/dev/tty";
   strcat(serialPortFilename, argv[1]);
   int c_mod = chmod(serialPortFilename, S_IRWXU|S_IRWXG|S_IROTH|S_IWOTH);
@@ -219,8 +231,8 @@ int main(int argc, char* argv[]){
     ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
     exit(0);
   }
-  //odometry/filtered_map
-  ros::Subscriber sub = cam.subscribe("/chaser/sensors/pose_from_tag_bundle", 1000, poseCallback);
+  ros::Subscriber sub = mid_lvl.subscribe("/odometry/filtered_map", 1000, poseCallback);
+  ros::Subscriber sub_tof = mid_lvl.subscribe("/chaser/sensors/tof", 1000, tofCallback);
   ros::Rate loop_rate(10);
   while (ros::ok())
   {
