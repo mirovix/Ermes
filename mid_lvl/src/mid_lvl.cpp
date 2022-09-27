@@ -72,14 +72,15 @@ void setBlocking (int fd, int should_block){
     ROS_INFO("error %d setting term attributes", errno);
 }
 
-void sendCommand(int axis, int cylces, int fd){
+void  sendCommand(int axis, int cylces, int fd){
 
   if(cylces < 2)
-    cylces = 2;
-
+    cylces = 1;
+  
+  int skip = 150; 
   size_t n_cycles = 3, n_axis = 2;
-  std::ostringstream ss_cycles, ss_axis, ss_axis_dec;
-  cylces /= 2;
+  std::ostringstream ss_cycles, ss_axis, ss_axis_dec, ss_cycles_dec;
+  //cylces /= 2;
 
   ROS_INFO("axis %d cycles %d", axis, cylces);
   
@@ -92,15 +93,21 @@ void sendCommand(int axis, int cylces, int fd){
   write (fd, input, sizeof(input));
   std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+50));
 
-  if(axis > 5) axis -= 6;else axis += 6;
-
-  ss_axis_dec << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
-  ROS_INFO("axis %d cycles %d", axis, cylces);
-  std::string s_dec = ss_axis_dec.str() + "01" + ss_cycles.str();
-  char input_dec[s_dec.length() + 1];
-  strcpy(input_dec, s_dec.c_str());
-  write (fd, input_dec, sizeof(input_dec));
-  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+175));
+  if(axis != 0){
+    if(axis > 5) axis -= 6;else axis += 6;
+    ss_axis_dec << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
+    ss_cycles_dec << std::setw(n_cycles) << std::setfill('0') << std::to_string(cylces_dec);
+    ROS_INFO("axis %d cycles %d", axis, cylces_dec);
+    std::string s_dec = ss_axis_dec.str() + "01" + ss_cycles_dec.str();
+    char input_dec[s_dec.length() + 1];
+    strcpy(input_dec, s_dec.c_str());
+    write (fd, input_dec, sizeof(input_dec));
+  }
+  else{
+    cylces=0;
+    skip=75;
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+skip));
   //sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
 }
 
@@ -186,8 +193,8 @@ void controlSequence(int fd){
 
 }
 
-//geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg
-void poseCallback(const nav_msgs::Odometry::ConstPtr& msg){
+//const nav_msgs::Odometry::ConstPtr& msg
+void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
   //ROS_INFO("I heard: [%f]", msg->pose.pose.position.x);
   state_cam = msg->pose.pose;
   //ROS_INFO("I heard: [%f]", state_cam.position.x); 
@@ -210,7 +217,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12])};
     default_pos = {std::atof(argv[13]), std::atof(argv[14])};
     w_ori = std::atof(argv[7]); w_pos = std::atof(argv[8]); w_pos_x = std::atof(argv[9]);
-    //cylces_dec = std::atoi(argv[15]);
+    cylces_dec = std::atoi(argv[15]);
   }
   else{
     range_ori = {0.6, 0.6, 0.6};
@@ -218,7 +225,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {1.57, -0.13, 3.14};
     default_pos = {0.025, -0.012};
     w_ori = 2; w_pos = 3; w_pos_x = 6; 
-    //cylces_dec = 1;
+    cylces_dec = 1;
   }
   min_distance = 0.04;
   char serialPortFilename[] = "/dev/tty";
@@ -231,7 +238,7 @@ int main(int argc, char* argv[]){
     ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
     exit(0);
   }
-  ros::Subscriber sub = mid_lvl.subscribe("/odometry/filtered_map", 1000, poseCallback);
+  ros::Subscriber sub = mid_lvl.subscribe("/chaser/sensors/pose_from_tag_bundle", 1000, poseCallback);
   ros::Subscriber sub_tof = mid_lvl.subscribe("/chaser/sensors/tof", 1000, tofCallback);
   ros::Rate loop_rate(10);
   while (ros::ok())
