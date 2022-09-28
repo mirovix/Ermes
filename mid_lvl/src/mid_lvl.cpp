@@ -14,6 +14,8 @@
 //[0-5] positive axis [6-11] negative axis
 
 geometry_msgs::Pose state_cam;
+size_t n_cycles = 3, n_axis = 2;
+int time_acc = 175, time_dec = 70;
 float x_tof = 1000;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
 //def ranges and weights
@@ -72,15 +74,11 @@ void setBlocking (int fd, int should_block){
     ROS_INFO("error %d setting term attributes", errno);
 }
 
-void  sendCommand(int axis, int cylces, int fd){
+void sendCommand(int axis, int cylces, int fd, int time){
 
-  if(cylces < 2)
-    cylces = 1;
-  
-  int skip = 150; 
-  size_t n_cycles = 3, n_axis = 2;
-  std::ostringstream ss_cycles, ss_axis, ss_axis_dec, ss_cycles_dec;
-  //cylces /= 2;
+  if(cylces < 2)cylces = 1;
+
+  std::ostringstream ss_cycles, ss_axis;
 
   ROS_INFO("axis %d cycles %d", axis, cylces);
   
@@ -91,24 +89,24 @@ void  sendCommand(int axis, int cylces, int fd){
   char input[s.length() + 1];
   strcpy(input, s.c_str());
   write (fd, input, sizeof(input));
-  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+50));
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+time));
+}
 
-  if(axis != 0){
-    if(axis > 5) axis -= 6;else axis += 6;
-    ss_axis_dec << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
-    ss_cycles_dec << std::setw(n_cycles) << std::setfill('0') << std::to_string(cylces_dec);
-    ROS_INFO("axis %d cycles %d", axis, cylces_dec);
-    std::string s_dec = ss_axis_dec.str() + "01" + ss_cycles_dec.str();
-    char input_dec[s_dec.length() + 1];
-    strcpy(input_dec, s_dec.c_str());
-    write (fd, input_dec, sizeof(input_dec));
-  }
-  else{
-    cylces=0;
-    skip=75;
-  }
-  std::this_thread::sleep_for(std::chrono::milliseconds((cylces*INTERVAL_ROS_MSG)+skip));
-  //sleep((cylces*INTERVAL_ROS_MSG/1000)+1);
+void sendDecCommand(int axis, int fd, int time){
+  std::ostringstream ss_axis_dec, ss_cycles_dec;
+  if(axis > 5) axis -= 6;else axis += 6;
+  if(cylces_dec < 2)cylces_dec = 1;
+  
+  ROS_INFO("axis %d cycles %d", axis, cylces_dec);
+  
+  ss_axis_dec << std::setw(n_axis) << std::setfill('0') << std::to_string(axis);
+  ss_cycles_dec << std::setw(n_cycles) << std::setfill('0') << std::to_string(cylces_dec);
+  
+  std::string s_dec = ss_axis_dec.str() + "01" + ss_cycles_dec.str();
+  char input_dec[s_dec.length() + 1];
+  strcpy(input_dec, s_dec.c_str());
+  write (fd, input_dec, sizeof(input_dec));
+  std::this_thread::sleep_for(std::chrono::milliseconds((cylces_dec*INTERVAL_ROS_MSG)+time));
 }
 
 void controlSequence(int fd){
@@ -128,7 +126,7 @@ void controlSequence(int fd){
   state.push_back(state_cam.position.z);
   state.push_back(roll);
   state.push_back(pitch);
-  state.push_back(yaw );
+  state.push_back(yaw);
 
   //check if the values are not found
   for(int i=0; i<3; i++)
@@ -141,17 +139,18 @@ void controlSequence(int fd){
   for(int i=0; i<6; i++)
     ROS_INFO("I %d heard: [%f]", i, state[i]);
   
-  //check orientation
   for(int pos_ori = 3; pos_ori < 6; pos_ori++){
     //std::cout << defualt_ori[pos_ori]+range_ori[pos_ori-3] << std::endl;
     //std::cout << state[pos_ori] << std::endl;
     if(state[pos_ori] > defualt_ori[pos_ori-3]+range_ori[pos_ori-3]){
-      sendCommand(pos_ori, int(abs(w_ori*state[pos_ori])), fd);
+      sendCommand(pos_ori, int(abs(w_ori)), fd, time_acc);
+      sendDecCommand(pos_ori, fd, time_dec);
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
     if(state[pos_ori] < defualt_ori[pos_ori-3]-range_ori[pos_ori-3]){ 
-      sendCommand(pos_ori+6, int(abs(w_ori*state[pos_ori])), fd);
+      sendCommand(pos_ori+6, int(abs(w_ori)), fd, time_acc);
+      sendDecCommand(pos_ori+6, fd, time_dec);
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
@@ -160,15 +159,22 @@ void controlSequence(int fd){
   //check position y and z
   for(int pos = 1; pos < 3; pos++){
     if(state[pos] > default_pos[pos-1]+range_pos[pos-1]){
-      sendCommand(pos, int(abs(w_pos*state[pos])), fd);
+      sendCommand(pos, int(abs(w_pos)), fd, time_acc);
       ROS_INFO("value %f", state[pos]);
       return;
     }
     if(state[pos] < default_pos[pos-1]-range_pos[pos-1]){
-      sendCommand(pos+6, int(abs(w_pos*state[pos])), fd);
+      sendCommand(pos+6, int(abs(w_pos)), fd, time_acc);
       ROS_INFO("value %f", state[pos]);
       return;
     }
+  }
+  
+  float value_to_check = 0.085;
+  if(x_tof < value_to_check){
+    //use tof
+    state[0] = x_tof;
+    ROS_INFO("TOF ON, value %f", x_tof);
   }
 
   //decrease position along x
@@ -176,20 +182,13 @@ void controlSequence(int fd){
      ROS_INFO("***DONE***");
      exit(0);
   }
-  
-  float value_to_check = 0.085;
-  if(state[0] < value_to_check){
-    if(x_tof < value_to_check){
-      //use tof
-      state[0] = x_tof;
-      ROS_INFO("TOF ON, value %f", x_tof);
-    }
-    sendCommand(0, (int(w_pos_x)*0.35), fd);
-  }
+
+  if(state[0] < value_to_check)
+    sendCommand(0, (int(w_pos_x)*0.35), fd, time_acc);
   else if(state[0] < 0.14)
-    sendCommand(0, (int(w_pos_x)*0.65), fd);
+    sendCommand(0, (int(w_pos_x)*0.65), fd, time_acc);
   else 
-    sendCommand(0, int(w_pos_x), fd);
+    sendCommand(0, int(w_pos_x), fd, time_acc);
 
 }
 
@@ -220,9 +219,9 @@ int main(int argc, char* argv[]){
     cylces_dec = std::atoi(argv[15]);
   }
   else{
-    range_ori = {0.6, 0.6, 0.6};
+    range_ori = {0.5, 0.5, 0.5};
     range_pos = {0.7, 0.7};
-    defualt_ori = {1.57, -0.13, 3.14};
+    defualt_ori = {1.57, -0.13, -3.14};
     default_pos = {0.025, -0.012};
     w_ori = 2; w_pos = 3; w_pos_x = 6; 
     cylces_dec = 1;
