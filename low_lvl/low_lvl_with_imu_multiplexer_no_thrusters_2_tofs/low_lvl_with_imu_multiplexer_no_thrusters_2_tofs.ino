@@ -319,7 +319,7 @@ void pubtof(uint8_t &range1, uint8_t &range2, uint8_t &range3, char *name, unsig
     if(range3 < 0)
       range3 = 0;   
 
-    tof_msg.point.x = (range1+range2+range3)/10;
+    tof_msg.point.x = ((range1+range2+range3)/3)/10;
     tof_msg.point.y = 0;
     tof_msg.point.z = 0;
 
