@@ -101,10 +101,10 @@ void setup() {
   initTCA9548A_PS();
 
   //chipselect between imu1 and imu2
-  TCA9548A_PS(pin_imu1);
+  //TCA9548A_PS(pin_imu1);
 
   //setup the frist imu
-  imuSetup(imu1, aRes1, gRes1, mRes1);
+  //imuSetup(imu1, aRes1, gRes1, mRes1);
 
   //TCA9548A_PS(pin_imu2);
 
@@ -153,11 +153,11 @@ void tofSetup(Adafruit_VL6180X &vl){
 
 void loop() { 
   
-  TCA9548A_PS(pin_imu1);
+  //TCA9548A_PS(pin_imu1);
   
   //loop for the frist imu
-  imuLoop(imu_msg1, imu1, aRes1, gRes1, mRes1, statusXL_G1, newXLData1, newGData1, statusM1, newMData1,
-  sensorValues1, ax1, ay1, az1, gx1, gy1, gz1, mx1, my1, mz1, name_imu1, lastRefreshTime1, lastUpdate1, now1);
+  //imuLoop(imu_msg1, imu1, aRes1, gRes1, mRes1, statusXL_G1, newXLData1, newGData1, statusM1, newMData1,
+  //sensorValues1, ax1, ay1, az1, gx1, gy1, gz1, mx1, my1, mz1, name_imu1, lastRefreshTime1, lastUpdate1, now1);
 
   //TCA9548A_PS(pin_imu2);
 
