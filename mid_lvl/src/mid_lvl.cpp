@@ -15,7 +15,7 @@
 
 geometry_msgs::Pose state_cam;
 size_t n_cycles = 3, n_axis = 2;
-int time_acc = 175, time_dec = 70;
+int time_acc = 135, time_dec = 55;
 float x_tof = 1000;
 int count_x = 0;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
@@ -184,18 +184,18 @@ void controlSequence(int fd){
      exit(0);
   }
 
-  if(count_x == 2){
+  /*if(count_x == 2){
     sendDecCommand(0, fd, time_acc);
     count_x=0;
     return;
-  }
+  }*/
 
   if(state[0] < value_to_check){
-    count_x++;
+    //count_x++;
     sendCommand(0, (int(w_pos_x)*0.35), fd, time_acc);
   }
   else if(state[0] < 0.14){
-    count_x++;
+    //count_x++;
     sendCommand(0, (int(w_pos_x)*0.65), fd, time_acc);
   }
   else 

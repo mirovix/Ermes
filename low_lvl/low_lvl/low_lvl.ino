@@ -21,7 +21,7 @@ char *ev_config[2*dof];
 //time synchronization 
 unsigned long start,loop_start = 0;
 
-const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; // 10Hz
+const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/65.f*1000; // 10Hz
 
 
 void setup() {
@@ -66,8 +66,8 @@ void loop() {
       input_serial[7] = '\0';
       if(length_input>0){
         
-        Serial.print("Input:");
-        Serial.println(input_serial);
+        //Serial.print("Input:");
+        //Serial.println(input_serial);
         
         cycles = (input_serial[4] - '0') * 100 + (input_serial[5] - '0') * 10 + input_serial[6] - '0';
         cycles--;
@@ -75,7 +75,7 @@ void loop() {
         start = millis();
         OpenThrusters(input_serial);
         
-        print_info(input_serial);
+        //print_info(input_serial);
       }
     }
   }
@@ -86,27 +86,27 @@ void loop() {
   
   if(count_cycles > cycles and cycles != -1){
     CloseThrusters(); 
-    Serial.print("Effective time:");
-    Serial.println(millis()-start);
+    //Serial.print("Effective time:");
+    //Serial.println(millis()-start);
   }
   
   delay(INTERVAL_ROS_MSG-(millis()-loop_start));
 }
 
 void OpenThrusters(char *input){
-  Serial.print("Thrusters opened:");
+  //Serial.print("Thrusters opened:");
   for(i=0;i<num_ev;i++)
     if(ev_config[((input[0] - '0') * 10 + input[1] - '0')][i]-'0')
       OpenSingleThruster(equalize[((input[2] - '0') * 10 + input[3] - '0')]);
-   Serial.println();
+  //Serial.println();
 }
 
 void OpenSingleThruster(uint8_t acc){
   digitalWrite(i+2, HIGH);
-  Serial.print("--- Thruster:");
-  Serial.print(i);
-  Serial.print(" Acc:");
-  Serial.print(acc);
+  //Serial.print("--- Thruster:");
+  //Serial.print(i);
+  //Serial.print(" Acc:");
+  //Serial.print(acc);
 }
 
 void CloseThrusters(){
@@ -115,7 +115,7 @@ void CloseThrusters(){
   count_cycles = 0;
   cycles = -1;
   flag_thruster_open = false;
-  Serial.println("Thruster closed");
+  //Serial.println("Thruster closed");
 }
 
 // Print the input recived
