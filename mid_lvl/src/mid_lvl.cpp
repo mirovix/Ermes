@@ -129,6 +129,13 @@ void controlSequence(int fd){
   state.push_back(pitch);
   state.push_back(yaw);
 
+  float value_to_check = 0.085;
+  if(x_tof < value_to_check){
+    //use tof
+    state[0] = x_tof;
+    ROS_INFO("TOF ON, value %f", x_tof);
+  }
+
   //check if the values are not found
   for(int i=0; i<3; i++)
     if(state[i] == 0.0)
@@ -170,13 +177,6 @@ void controlSequence(int fd){
       return;
     }
   }
-  
-  float value_to_check = 0.085;
-  if(x_tof < value_to_check){
-    //use tof
-    state[0] = x_tof;
-    ROS_INFO("TOF ON, value %f", x_tof);
-  }
 
   //decrease position along x
   if(state[0] < min_distance){
@@ -211,7 +211,8 @@ void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 }
 
 void tofCallback(const geometry_msgs::PointStamped::ConstPtr& msg){
-  x_tof = msg->point.x;
+  x_tof = msg->point.x/100;
+  //ROS_INFO("I TOFFFF: [%f]", x_tof); 
 }
 
 int main(int argc, char* argv[]){

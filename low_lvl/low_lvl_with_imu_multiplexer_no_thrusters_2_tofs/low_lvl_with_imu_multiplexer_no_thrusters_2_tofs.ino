@@ -24,7 +24,7 @@ int i = 0;
 //time synchronization 
 unsigned long start,loop_start = 0;
 
-const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; // 10Hz
+const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/65.f*1000; // 10Hz
 
 ros::NodeHandle nh;
 sensor_msgs::Imu imu_msg1, imu_msg2;
@@ -296,13 +296,7 @@ char *name, unsigned long &lastRefreshTime, int32_t &lastUpdate, uint32_t &now){
 }
 
 void tofLoop(Adafruit_VL6180X &vl, float &lux, uint8_t &range){
-  
-  lux = vl.readLux(VL6180X_ALS_GAIN_5);
-  if (vl.readRangeStatus() == VL6180X_ERROR_NONE)
-    range = vl.readRange();
-  else
-    range = -1;
-
+  range = vl.readLux(VL6180X_ALS_GAIN_5);
 }
 
 void pubtof(uint8_t &range1, uint8_t &range2, uint8_t &range3, char *name, unsigned long &lastRefreshTime){
@@ -310,16 +304,24 @@ void pubtof(uint8_t &range1, uint8_t &range2, uint8_t &range3, char *name, unsig
     lastRefreshTime += INTERVAL_ROS_MSG;
     tof_msg.header.frame_id = name;
     tof_msg.header.stamp = nh.now();
-
+    int div = 3;
     //TODO >> combinazione dei tre randge
-    if(range1 < 0)
+    if(range1 < 0){
       range1 = 0;
-    if(range2 < 0)
+      div--;
+    }
+    if(range2 < 0){
       range2 = 0;
-    if(range3 < 0)
-      range3 = 0;   
+      div--;
+    }
+    if(range3 < 0){
+      range3 = 0;  
+      div--;
+    } 
+    if(div == 0)
+      return;
 
-    tof_msg.point.x = ((range1+range2+range3)/3)/10;
+    tof_msg.point.x = ((range1+range2+range3)/div);
     tof_msg.point.y = 0;
     tof_msg.point.z = 0;
 

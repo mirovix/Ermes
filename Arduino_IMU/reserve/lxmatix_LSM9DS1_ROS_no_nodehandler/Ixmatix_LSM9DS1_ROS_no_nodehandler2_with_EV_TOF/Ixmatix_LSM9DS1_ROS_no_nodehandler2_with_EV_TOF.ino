@@ -40,7 +40,7 @@ Adafruit_VL6180X vl2 = Adafruit_VL6180X();
 Adafruit_VL6180X vl3 = Adafruit_VL6180X();
 
 // deltat variables
-uint8_t pin_imu1 = 3, pin_imu2 = 4, pin_tof1 = 0, pin_tof2 = 1, pin_tof3 = 2;
+uint8_t pin_imu1 = 3, pin_imu2 = 4, pin_tof1 = 1, pin_tof2 = 2, pin_tof3 = 3;
 
 //tofs values
 float lux1, lux2, lux3;
@@ -88,11 +88,11 @@ void setup() {
   initTCA9548A_PS();
 
   //setup the frist imu
-  TCA9548A_PS(pin_imu1);
+  //TCA9548A_PS(pin_imu1);
   //imuSetup(imu1, aRes1, gRes1);
   
   //setup the second imu
-  TCA9548A_PS(pin_imu2);
+  //TCA9548A_PS(pin_imu2);
   //imuSetup(imu2, aRes2, gRes2);
 
   //setup the first tof
