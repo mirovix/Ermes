@@ -147,21 +147,20 @@ void controlSequence(int fd){
   for(int i=0; i<6; i++)
     ROS_INFO("I %d heard: [%f]", i, state[i]);
   
-  for(int pos_ori = 3; pos_ori < 5; pos_ori++){
+  //for(int pos_ori = 3; pos_ori < 5; pos_ori++){
     //std::cout << defualt_ori[pos_ori]+range_ori[pos_ori-3] << std::endl;
     //std::cout << state[pos_ori] << std::endl;
-    if(state[pos_ori] > defualt_ori[pos_ori-3]+range_ori[pos_ori-3]){
-      sendCommand(pos_ori, int(abs(w_ori)), fd, time_acc);
-      sendDecCommand(pos_ori, fd, time_dec);
-      ROS_INFO("value %f", state[pos_ori]);
+  if(state[4] > defualt_ori[1]+range_ori[1]){
+      sendCommand(4, int(abs(w_ori)), fd, time_acc);
+      sendDecCommand(4, fd, time_dec);
+      ROS_INFO("value %f", state[4]);
       return;
-    }
-    if(state[pos_ori] < defualt_ori[pos_ori-3]-range_ori[pos_ori-3]){ 
-      sendCommand(pos_ori+6, int(abs(w_ori)), fd, time_acc);
-      sendDecCommand(pos_ori+6, fd, time_dec);
-      ROS_INFO("value %f", state[pos_ori]);
+  }
+  else if(state[4] < defualt_ori[1]-range_ori[1]){ 
+      sendCommand(10, int(abs(w_ori)), fd, time_acc);
+      sendDecCommand(10, fd, time_dec);
+      ROS_INFO("value %f", state[4]);
       return;
-    }
   }
 
   if(abs(state[5]) < abs(defualt_ori[2]) - abs(range_ori[2])){
