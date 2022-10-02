@@ -24,7 +24,7 @@ int i = 0;
 //time synchronization 
 unsigned long start,loop_start = 0;
 
-const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/65.f*1000; // 10Hz
+const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000; //65ms
 
 ros::NodeHandle nh;
 sensor_msgs::Imu imu_msg1, imu_msg2;

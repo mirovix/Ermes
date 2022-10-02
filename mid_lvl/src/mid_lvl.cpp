@@ -15,10 +15,10 @@
 
 geometry_msgs::Pose state_cam;
 size_t n_cycles = 3, n_axis = 2;
-int time_acc = 135, time_dec = 55;
+int time_acc = 150, time_dec = 65;
 float x_tof = 1000;
 int count_x = 0;
-const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; //10Hz
+const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000; //65ms
 //def ranges and weights
 std::vector<double> range_ori, range_pos, defualt_ori, default_pos;
 double w_ori, w_pos, w_pos_x, min_distance;
@@ -147,7 +147,7 @@ void controlSequence(int fd){
   for(int i=0; i<6; i++)
     ROS_INFO("I %d heard: [%f]", i, state[i]);
   
-  for(int pos_ori = 3; pos_ori < 6; pos_ori++){
+  for(int pos_ori = 3; pos_ori < 5; pos_ori++){
     //std::cout << defualt_ori[pos_ori]+range_ori[pos_ori-3] << std::endl;
     //std::cout << state[pos_ori] << std::endl;
     if(state[pos_ori] > defualt_ori[pos_ori-3]+range_ori[pos_ori-3]){
@@ -162,6 +162,18 @@ void controlSequence(int fd){
       ROS_INFO("value %f", state[pos_ori]);
       return;
     }
+  }
+
+  if(abs(state[5]) < abs(defualt_ori[2]) - abs(range_ori[2])){
+    int pos_ori_yaw;
+    if(state[5] > 0)
+      pos_ori_yaw = 11;
+    else
+      pos_ori_yaw = 5;
+    sendCommand(pos_ori_yaw, int(abs(w_ori)), fd, time_acc);
+    sendDecCommand(pos_ori_yaw, fd, time_dec);
+    ROS_INFO("value %f", state[5]);
+    return;
   }
 
   //check position y and z

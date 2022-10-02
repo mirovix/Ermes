@@ -31,7 +31,7 @@ char *ev_config[2*dof];
 //time synchronization 
 unsigned long start,loop_start = 0;
 
-const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/10.f*1000; // 10Hz
+const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000; //65ms
 
 Ixmatix_LSM9DS1 imu1;
 Ixmatix_LSM9DS1 imu2;
