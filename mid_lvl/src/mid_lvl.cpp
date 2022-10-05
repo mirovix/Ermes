@@ -151,14 +151,14 @@ void controlSequence(int fd){
     //std::cout << defualt_ori[pos_ori]+range_ori[pos_ori-3] << std::endl;
     //std::cout << state[pos_ori] << std::endl;
   if(state[4] > defualt_ori[1]+range_ori[1]){
-      sendCommand(4, int(abs(w_ori)), fd, time_acc);
-      sendDecCommand(4, fd, time_dec);
+      sendCommand(10, int(abs(w_ori)), fd, time_acc);
+      //sendDecCommand(4, fd, time_dec);
       ROS_INFO("value %f", state[4]);
       return;
   }
   else if(state[4] < defualt_ori[1]-range_ori[1]){ 
-      sendCommand(10, int(abs(w_ori)), fd, time_acc);
-      sendDecCommand(10, fd, time_dec);
+      sendCommand(4, int(abs(w_ori)), fd, time_acc);
+      //sendDecCommand(10, fd, time_dec);
       ROS_INFO("value %f", state[4]);
       return;
   }
@@ -166,11 +166,11 @@ void controlSequence(int fd){
   if(abs(state[5]) < abs(defualt_ori[2]) - abs(range_ori[2])){
     int pos_ori_yaw;
     if(state[5] > 0)
-      pos_ori_yaw = 11;
-    else
       pos_ori_yaw = 5;
+    else
+      pos_ori_yaw = 11;
     sendCommand(pos_ori_yaw, int(abs(w_ori)), fd, time_acc);
-    sendDecCommand(pos_ori_yaw, fd, time_dec);
+    //sendDecCommand(pos_ori_yaw, fd, time_dec);
     ROS_INFO("value %f", state[5]);
     return;
   }
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12])};
     default_pos = {std::atof(argv[13]), std::atof(argv[14])};
     w_ori = std::atof(argv[7]); w_pos = std::atof(argv[8]); w_pos_x = std::atof(argv[9]);
-    cylces_dec = std::atoi(argv[15]);
+    //cylces_dec = std::atoi(argv[15]);
   }
   else{
     range_ori = {0.5, 0.5, 0.5};
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {1.57, -0.13, -3.14};
     default_pos = {0.025, -0.012};
     w_ori = 2; w_pos = 3; w_pos_x = 6; 
-    cylces_dec = 1;
+    //cylces_dec = 1;
   }
   min_distance = 0.04;
   char serialPortFilename[] = "/dev/tty";
