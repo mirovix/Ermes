@@ -239,7 +239,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {std::atof(argv[10]), std::atof(argv[11]), std::atof(argv[12])};
     default_pos = {std::atof(argv[13]), std::atof(argv[14])};
     w_ori = std::atof(argv[7]); w_pos = std::atof(argv[8]); w_pos_x = std::atof(argv[9]);
-    cylces_dec = std::atoi(argv[15]);
+    //cylces_dec = std::atoi(argv[15]);
   }
   else{
     range_ori = {0.5, 0.5, 0.5};
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]){
     defualt_ori = {1.57, -0.13, -3.14};
     default_pos = {0.025, -0.012};
     w_ori = 2; w_pos = 3; w_pos_x = 6; 
-    cylces_dec = 1;
+    //cylces_dec = 1;
   }
   min_distance = 0.04;
   char serialPortFilename[] = "/dev/tty";
