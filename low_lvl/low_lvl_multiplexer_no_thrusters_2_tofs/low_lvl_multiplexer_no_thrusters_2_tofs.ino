@@ -2,16 +2,14 @@
 #include <ros.h>
 #include <geometry_msgs/PointStamped.h>
 
-const uint8_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000; //65ms
+const uint8_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000;
 
 ros::NodeHandle nh;
 geometry_msgs::PointStamped tof_msg;
 ros::Publisher tof_pub("/chaser/sensors/tof", &tof_msg);
 
 Adafruit_VL6180X vl1, vl2, vl3;
-
 unsigned int lastRefreshTimeTof = 0;
-
 
 void setup() {
 
