@@ -152,13 +152,13 @@ void controlSequence(int fd){
     //std::cout << state[pos_ori] << std::endl;
   if(state[4] > defualt_ori[1]+range_ori[1]){
       sendCommand(4, int(abs(w_ori)), fd, time_acc);
-      sendDecCommand(4, fd, time_dec);
+      //sendDecCommand(4, fd, time_dec);
       ROS_INFO("value %f", state[4]);
       return;
   }
   else if(state[4] < defualt_ori[1]-range_ori[1]){ 
       sendCommand(10, int(abs(w_ori)), fd, time_acc);
-      sendDecCommand(10, fd, time_dec);
+      //sendDecCommand(10, fd, time_dec);
       ROS_INFO("value %f", state[4]);
       return;
   }
@@ -170,7 +170,7 @@ void controlSequence(int fd){
     else
       pos_ori_yaw = 5;
     sendCommand(pos_ori_yaw, int(abs(w_ori)), fd, time_acc);
-    sendDecCommand(pos_ori_yaw, fd, time_dec);
+    //sendDecCommand(pos_ori_yaw, fd, time_dec);
     ROS_INFO("value %f", state[5]);
     return;
   }
