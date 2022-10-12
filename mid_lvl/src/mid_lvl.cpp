@@ -25,7 +25,7 @@ const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000; //65ms
 //def ranges and weights
 std::vector<double> range_ori, range_pos, defualt_ori, default_pos;
 double w_ori, w_pos, w_pos_x, min_distance;
-int cylces_dec;
+int cylces_dec; 
 
 int setInterfaceAttribs (int fd, int speed, int parity){
   struct termios tty;
