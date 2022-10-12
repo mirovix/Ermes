@@ -51,7 +51,7 @@ void setup() {
   pinMode(PIN_HOME, OUTPUT);
   pinMode(PIN_EM, OUTPUT);
   
-  digitalWrite(PIN_EM, HIGH);
+  digitalWrite(PIN_EM, HIGH);  // con HIGH apri il p-mosfet --> setup iniziale con tutto spento
 }
 
 void loop() {
@@ -70,6 +70,8 @@ void loop() {
 
   // ----------------------------------------------------------------------------
 
+  // NB: Prima di ogni manovra bisogna fare un SETUP perchè così accendi i magneti e riposizioni ad HOME
+
   // MANOVRA DI RILASCIO1 = H --> P2.1 --> EM --> P2.2 --> P1       
   if (AZ_ST1 && (dt_st >= AttesaStart1)){  // Se il comando START1 è stato ricevuto e sono passati 'AttesaStart1' secondi
       
@@ -78,7 +80,7 @@ void loop() {
     Serial.println("Initialize POS2");
     
     delay(AttesaEM1);
-    digitalWrite(PIN_EM, LOW); // con LOW apri il n-mosfet
+    digitalWrite(PIN_EM, HIGH); // con HIGH apri il p-mosfet
     Serial.println("MAGNETIC RELEASE");
     
     delay(DurataRilascio1 - AttesaEM1);
@@ -87,6 +89,8 @@ void loop() {
     delay(AttesaRip);
     digitalWrite(PIN_POS1, LOW); // con LOW chiudi il p-mosfet
     Serial.println("Initialize POS1");
+    delay(DurataRip);
+
     AZ_COMPL = true;
     AZ_ST1 = false;  // sovrascrivi il comando per evitare che lo ripeta  
     Serial.println("type...");   
@@ -111,7 +115,7 @@ void loop() {
     Serial.println("Initialize POS2");
     
     delay(AttesaEM2);
-    digitalWrite(PIN_EM, LOW); // con LOW apri il n-mosfet
+    digitalWrite(PIN_EM, HIGH); // con HIGH apri il p-mosfet
     Serial.println("MAGNETIC RELEASE");
     
     delay(DurataRilascio2 - AttesaEM2);
@@ -120,6 +124,8 @@ void loop() {
     delay(AttesaRip);
     digitalWrite(PIN_POS1, LOW); // con LOW chiudi il p-mosfet
     Serial.println("Initialize POS1");
+    delay(DurataRip);
+
     AZ_COMPL = true;
     AZ_ST2 = false;  // sovrascrivi il comando per evitare che lo ripeta  
     Serial.println("type...");   
@@ -136,7 +142,7 @@ void loop() {
     Serial.println("Initialize POS2");
     delay(DurataPrePos3);
     
-    digitalWrite(PIN_EM, LOW); // con LOW apri il n-mosfet
+    digitalWrite(PIN_EM, HIGH); // con HIGH apri il p-mosfet
     Serial.println("MAGNETIC RELEASE");
     
     delay(100);
@@ -145,6 +151,8 @@ void loop() {
     delay(AttesaRip);
     digitalWrite(PIN_POS1, LOW); // con LOW chiudi il p-mosfet
     Serial.println("Initialize POS1");
+    delay(DurataRip);
+
     AZ_COMPL = true;
     AZ_ST3 = false;  // sovrascrivi il comando per evitare che lo ripeta  
     Serial.println("type...");   
@@ -162,9 +170,10 @@ void loop() {
     delay(DurataHoming);
     digitalWrite(PIN_HOME, HIGH);  // con HIGH apri il p-mosfet
     
-    digitalWrite(PIN_EM, HIGH); // con HIGH chiudi il n-mosfet
+    digitalWrite(PIN_EM, LOW); // con HIGH chiudi il p-mosfet
     Serial.println("EM activated");
     delay(500);
+
     AZ_COMPL = true; 
     AZ_SU = false; // sovrascrivi il comando per evitare che lo ripeta   
     Serial.println("type...");    
@@ -234,6 +243,7 @@ void loop() {
         AZ_ST1 = false;
         AZ_ST2 = false;
         AZ_ST3 = false;
+        delay(100); // delay di sicurezza di 100 ms 
         }   
     }
 }
