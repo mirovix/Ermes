@@ -15,7 +15,7 @@
 
 geometry_msgs::Pose state_cam;
 size_t n_cycles = 3, n_axis = 2;
-int time_acc = 150, time_dec = 65;
+int time_acc = 300, time_dec = 65;
 float x_tof = 1000;
 int count_x = 0;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000; //65ms
