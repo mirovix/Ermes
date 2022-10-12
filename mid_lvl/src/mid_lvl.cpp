@@ -14,8 +14,11 @@
 //[0-5] positive axis [6-11] negative axis
 
 geometry_msgs::Pose state_cam;
+int sequence = -1, current_sequence = -1;
+
 size_t n_cycles = 3, n_axis = 2;
 int time_acc = 150, time_dec = 65;
+double secs, max_time_opened_thrusters = 5.0;
 float x_tof = 1000;
 int count_x = 0;
 const uint32_t INTERVAL_ROS_MSG = (uint32_t) 1.f/(200.f/13.f)*1000; //65ms
@@ -111,6 +114,10 @@ void sendDecCommand(int axis, int fd, int time){
 }
 
 void controlSequence(int fd){
+  if(current_sequence == sequence && (ros::Time::now().toSec() - secs) > max_time_opened_thrusters)
+    return;
+  current_sequence = sequence;
+
   //check if state is found, [x, y, z, alfa, beta, theta]
   std::vector<double> state;
   tf::Quaternion q(
@@ -218,6 +225,7 @@ void controlSequence(int fd){
 void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
   //ROS_INFO("I heard: [%f]", msg->pose.pose.position.x);
   state_cam = msg->pose.pose;
+  sequence = msg->header.seq;
   //ROS_INFO("I heard: [%f]", state_cam.position.x); 
 }
 
@@ -260,6 +268,7 @@ int main(int argc, char* argv[]){
     ROS_INFO("error %d opening %s: %s", errno, serialPortFilename, strerror (errno));
     exit(0);
   }
+  secs = ros::Time::now().toSec();
   ros::Subscriber sub = mid_lvl.subscribe("/chaser/sensors/pose_from_tag_bundle", 1000, poseCallback);
   ros::Subscriber sub_tof = mid_lvl.subscribe("/chaser/sensors/tof", 1000, tofCallback);
   ros::Rate loop_rate(10);
