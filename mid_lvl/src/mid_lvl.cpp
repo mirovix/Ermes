@@ -236,7 +236,8 @@ void tofCallback(const geometry_msgs::PointStamped::ConstPtr& msg){
 
 int main(int argc, char* argv[]){
   //args USB, range orientation, range position, w_orientation, w_position, w_x, default orientation, default position,
-  // USB0 range_ori_roll range_ori_pitch range_ori_yaw range_pos_y range_pos_z w_ori w_pos w_pos_x 
+  // USB0 range_ori_roll range_ori_pitch range_ori_yaw range_pos_y range_pos_z w_ori w_pos w_pos_x #
+  //1 0.5 0.5 0.02 0.02 0.3 1 3.5 1.57 -0.13 -3.14 0.020 -0.05
   ros::init(argc, argv, "mid_lvl");
   ros::NodeHandle mid_lvl;
   if(argc < 2)
@@ -250,11 +251,11 @@ int main(int argc, char* argv[]){
     //cylces_dec = std::atoi(argv[15]);
   }
   else{
-    range_ori = {0.5, 0.5, 0.5};
-    range_pos = {0.7, 0.7};
+    range_ori = {1, 0.5, 0.5};
+    range_pos = {0.02, 0.02};
     defualt_ori = {1.57, -0.13, -3.14};
-    default_pos = {0.025, -0.012};
-    w_ori = 2; w_pos = 3; w_pos_x = 6; 
+    default_pos = {0.020, -0.05};
+    w_ori = 0.3; w_pos = 1; w_pos_x = 3.5; 
     //cylces_dec = 1;
   }
   min_distance = 0.04;
