@@ -51,7 +51,7 @@ void setup() {
   pinMode(PIN_HOME, OUTPUT);
   pinMode(PIN_EM, OUTPUT);
   
-  digitalWrite(PIN_EM, HIGH);
+  digitalWrite(PIN_EM, HIGH); // con HIGH apri il p-mosfet 
 }
 
 void loop() {
