@@ -6,10 +6,10 @@
 #define PIN_EM_1   5    // rilascio EM
 
 //SLIDER 2
-#define PIN_POS1_2 2    // fino a metà slider
-#define PIN_POS2_2 3    // distanza di rilascio
-#define PIN_HOME_2 4    // home = inizio slider
-#define PIN_EM_2   5    // rilascio EM
+#define PIN_POS1_2 8    // fino a metà slider
+#define PIN_POS2_2 9    // distanza di rilascio
+#define PIN_HOME_2 10    // home = inizio slider
+#define PIN_EM_2   11    // rilascio EM
 
 
 unsigned long t_start, dt_st;
