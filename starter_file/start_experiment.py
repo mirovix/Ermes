@@ -32,8 +32,8 @@ password = "ermespi"
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
-command_high_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; roslaunch ermes_chaser ermes_chaser.launch"
-command_mid_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; rosrun mid_lvl mid_lvl "
+command_high_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && roslaunch ermes_chaser ermes_chaser.launch"
+command_mid_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && rosrun mid_lvl mid_lvl "
 
 def connection(command, port, name, baud, timeout=3): 
     with serial.Serial(port, baud, timeout=timeout) as connection:
@@ -54,7 +54,6 @@ def process_input():
     
     for var in input_names.keys():
         if var not in globals():
-            print(var)
             globals()[var] = input_names[var] 
 
     return command_release, port_release, port_target, ip, port_chaser
@@ -79,7 +78,7 @@ if __name__ == "__main__":
     command_release, port_release, port_target, ip, port_chaser = process_input()
     command_release += '\n'
     command_release = command_release.encode('utf-8')
-
+    print(ip)
     # chaser high lvl start
     launch_high_lvl(ip)
 
