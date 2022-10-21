@@ -58,15 +58,11 @@ def process_input():
 
     return command_release, port_release, port_target, ip, port_chaser
 
-def launch_high_lvl(ip):
-    cmd = command_high_lvl % str(ip)
-    print(cmd)
-    os.system('cmd /k "' + cmd + '"') 
+def launch_chaser(ip):
+    cmd_high = command_high_lvl % str(ip)
+    cmd_mid = command_mid_lvl % str(ip)
+    os.system('cmd /k "' + cmd_mid + " && " + cmd_high + '"') 
 
-def launch_mid_lvl(ip, port):
-    cmd = command_mid_lvl % str(ip)
-    print(cmd)
-    os.system('cmd /k "' + cmd + '"') 
 
 if __name__ == "__main__":
     # ./script.py command_release:=value port_release:=value port_target:=value ip:=value port_chaser:=value
@@ -78,14 +74,11 @@ if __name__ == "__main__":
     command_release += '\n'
     command_release = command_release.encode('utf-8')
 
-    # chaser high lvl start
-    launch_high_lvl(ip)
+    # chaser start
+    launch_chaser(ip)
 
     # release start
     # connection(command_release, port_release, "release", baud_release)
 
     # target start
     # connection(target_command, port_target, "target", baud_target)
-
-    # chaser mid lvl start
-    launch_mid_lvl(ip, port_chaser)
