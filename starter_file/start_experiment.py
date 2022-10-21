@@ -10,6 +10,7 @@
 
 import serial
 import time
+import paramiko
 import sys
 import os
 
@@ -25,11 +26,14 @@ port_target_default = "COM7"
 ip_default = "192.168.1.1" 
 port_chaser_default = "USB0"
 
+user = "pi"
+password = "ermespi"
+
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
-command_high_lvl = ""
-command_mid_lvl = ""
+command_high_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; roslaunch ermes_chaser ermes_chaser.launch"
+command_mid_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; rosrun mid_lvl mid_lvl "
 
 def connection(command, port, name, baud, timeout=3): 
     with serial.Serial(port, baud, timeout=timeout) as connection:
@@ -58,8 +62,11 @@ def process_input():
     return command_release, port_release, port_target, ip, port_chaser
 
 def launch_high_lvl(ip):
-    with os.popen(command_high_lvl) as f:
-        print(f.readlines())
+    client = paramiko.client.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(ip, username=user, password=password)
+    _, _stdout,_ = client.exec_command(command_high_lvl)
+    print(_stdout.read().decode())
 
 def launch_mid_lvl(ip, port):
     with os.popen(command_mid_lvl) as f:
@@ -77,10 +84,10 @@ if __name__ == "__main__":
     launch_high_lvl(ip)
 
     # release start
-    connection(command_release, port_release, "release", baud_release)
+    # connection(command_release, port_release, "release", baud_release)
 
     # target start
-    connection(target_command, port_target, "target", baud_target)
+    # connection(target_command, port_target, "target", baud_target)
 
     # chaser mid lvl start
-    launch_mid_lvl(ip, port_chaser)
+    # launch_mid_lvl(ip, port_chaser)
