@@ -20,7 +20,7 @@ baud_release = 9600
 target_command = b"a"
 dict_command_release = {'0': "SETUP", '1': "s1", '2': "s2", '3': "s3", '4': "s4"}
 
-command_release_default = dict_command_release['0']
+command_release_default = "SETUP"
 port_release_default = "COM3"
 port_target_default = "COM7" 
 ip_default = "192.168.1.1" 
@@ -48,17 +48,14 @@ def connection(command, port, name, baud, timeout=3):
                 print(">> error: keyboardInterrupt has been caught.")
 
 def process_input():
-    command_release = command_release_default
     for i in range(1, len(sys.argv)):
         input_value = sys.argv[i].split(":=")
-        locals()[input_value[0]] = input_value[1]
+        globals()[input_value[0]] = input_value[1]
     
     for var in input_names.keys():
-        if var not in locals():
-            locals()[var] = input_names[var] 
-
-    command_release += '\n'
-    command_release = command_release.encode('utf-8')
+        if var not in globals():
+            print(var)
+            globals()[var] = input_names[var] 
 
     return command_release, port_release, port_target, ip, port_chaser
 
@@ -76,10 +73,12 @@ def launch_mid_lvl(ip, port):
 if __name__ == "__main__":
     # ./script.py command_release:=value port_release:=value port_target:=value ip:=value port_chaser:=value
 
-    print("experiment start")
+    print("experiment start\n")
 
     # process input (port, command, etc.)
     command_release, port_release, port_target, ip, port_chaser = process_input()
+    command_release += '\n'
+    command_release = command_release.encode('utf-8')
 
     # chaser high lvl start
     launch_high_lvl(ip)
