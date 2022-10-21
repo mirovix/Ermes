@@ -32,7 +32,7 @@ password = "ermespi"
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
-command_high_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && roslaunch ermes_chaser ermes_chaser.launch"
+command_high_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\command.txt"
 command_mid_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && rosrun mid_lvl mid_lvl "
 
 def connection(command, port, name, baud, timeout=3): 
@@ -59,11 +59,9 @@ def process_input():
     return command_release, port_release, port_target, ip, port_chaser
 
 def launch_high_lvl(ip):
-    client = paramiko.client.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(ip, username=user, password=password)
-    _, _stdout,_ = client.exec_command(command_high_lvl)
-    print(_stdout.read().decode())
+    cmd = command_high_lvl % str(ip)
+    print('cmd /k "' + cmd + '"')
+    os.system('cmd /k "' + cmd + '"') 
 
 def launch_mid_lvl(ip, port):
     with os.popen(command_mid_lvl) as f:
