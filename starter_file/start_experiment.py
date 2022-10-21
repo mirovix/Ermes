@@ -48,6 +48,7 @@ def connection(command, port, name, baud, timeout=3):
                 print(">> error: keyboardInterrupt has been caught.")
 
 def process_input():
+    command_release = command_release_default
     for i in range(1, len(sys.argv)):
         input_value = sys.argv[i].split(":=")
         locals()[input_value[0]] = input_value[1]
