@@ -32,8 +32,8 @@ password = "ermespi"
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
-command_high_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\command.txt"
-command_mid_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && rosrun mid_lvl mid_lvl "
+command_high_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_high.txt"
+command_mid_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_mid.txt"
 
 def connection(command, port, name, baud, timeout=3): 
     with serial.Serial(port, baud, timeout=timeout) as connection:
@@ -60,12 +60,13 @@ def process_input():
 
 def launch_high_lvl(ip):
     cmd = command_high_lvl % str(ip)
-    print('cmd /k "' + cmd + '"')
+    print(cmd)
     os.system('cmd /k "' + cmd + '"') 
 
 def launch_mid_lvl(ip, port):
-    with os.popen(command_mid_lvl) as f:
-        print(f.readlines())
+    cmd = command_mid_lvl % str(ip)
+    print(cmd)
+    os.system('cmd /k "' + cmd + '"') 
 
 if __name__ == "__main__":
     # ./script.py command_release:=value port_release:=value port_target:=value ip:=value port_chaser:=value
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     command_release, port_release, port_target, ip, port_chaser = process_input()
     command_release += '\n'
     command_release = command_release.encode('utf-8')
-    print(ip)
+
     # chaser high lvl start
     launch_high_lvl(ip)
 
@@ -87,4 +88,4 @@ if __name__ == "__main__":
     # connection(target_command, port_target, "target", baud_target)
 
     # chaser mid lvl start
-    # launch_mid_lvl(ip, port_chaser)
+    launch_mid_lvl(ip, port_chaser)
