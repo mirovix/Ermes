@@ -28,11 +28,12 @@ port_chaser_default = "USB0"
 
 user = "pi"
 password = "ermespi"
+ssh = paramiko.SSHClient()
 
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
-command_high_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_high.txt"
+command_high_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; roslaunch ermes_chaser ermes_chaser.launch" # "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_high.txt"
 command_mid_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_mid.txt"
 
 def connection(command, port, name, baud, timeout=3): 
@@ -58,10 +59,33 @@ def process_input():
 
     return command_release, port_release, port_target, ip, port_chaser
 
+
 def launch_chaser(ip):
-    cmd_high = command_high_lvl % str(ip)
-    cmd_mid = command_mid_lvl % str(ip)
-    os.system('cmd /k "' + cmd_mid + " && " + cmd_high + '"') 
+    # Load SSH host keys.
+    ssh.load_system_host_keys()
+    # Add SSH host key when missing.
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    
+    total_attempts = 3
+    for attempt in range(total_attempts):
+        try:
+            print(">> attempt to connect: %s" % attempt)
+            # Connect to router using username/password authentication.
+            ssh.connect(ip, 
+                        username=user, 
+                        password=password,
+                        look_for_keys=False)
+            # Run command.
+            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command_high_lvl)
+            # Read output from command.
+            output = ssh_stdout.readlines()
+            # Close connection.
+            # ssh.close()
+            # return output
+
+        except Exception as error_message:
+            print(">> unable to connect")
+            print(error_message)
 
 
 if __name__ == "__main__":
