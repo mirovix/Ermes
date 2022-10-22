@@ -33,7 +33,7 @@ ssh = paramiko.SSHClient()
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
-command_high_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; ls" # "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_high.txt"
+command_high_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; roslaunch ermes_chaser ermes_chaser.launch" # "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_high.txt"
 command_mid_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_mid.txt"
 
 def connection(command, port, name, baud, timeout=3): 
@@ -80,7 +80,7 @@ def launch_chaser(ip):
             # Read output from command.
             output = ssh_stdout.readlines()
             # Close connection.
-            ssh.close()
+            # ssh.close()
             # return output
 
         except Exception as error_message:
@@ -100,6 +100,7 @@ if __name__ == "__main__":
 
     # chaser start
     launch_chaser(ip)
+    print(">> chaser input done\n")
 
     # release start
     # connection(command_release, port_release, "release", baud_release)
