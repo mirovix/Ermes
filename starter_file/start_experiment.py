@@ -13,6 +13,7 @@ import time
 import paramiko
 import sys
 import os
+import keyboard
 
 baud_target = 38400
 baud_release = 9600
@@ -33,8 +34,8 @@ ssh = paramiko.SSHClient()
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
-command_high_lvl = "cd ermes_catkin_pi/; source ~/ermes_catkin_pi/devel/setup.bash; roslaunch ermes_chaser ermes_chaser.launch" # "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_high.txt"
-command_mid_lvl = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_mid.txt"
+command_mid_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && rosrun mid_lvl mid_lvl %s >> log_mid_%s.txt"
+end_command = "rosnode kill /mid_lvl"
 
 def connection(command, port, name, baud, timeout=3): 
     with serial.Serial(port, baud, timeout=timeout) as connection:
@@ -60,13 +61,13 @@ def process_input():
     return command_release, port_release, port_target, ip, port_chaser
 
 
-def launch_chaser(ip):
+def ssh(ip, command):
     # Load SSH host keys.
     ssh.load_system_host_keys()
     # Add SSH host key when missing.
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
-    total_attempts = 3
+    total_attempts = 1
     for attempt in range(total_attempts):
         try:
             print(">> attempt to connect: %s" % attempt)
@@ -76,11 +77,11 @@ def launch_chaser(ip):
                         password=password,
                         look_for_keys=False)
             # Run command.
-            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command_high_lvl)
+            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
             # Read output from command.
             output = ssh_stdout.readlines()
             # Close connection.
-            # ssh.close()
+            ssh.close()
             # return output
 
         except Exception as error_message:
@@ -99,11 +100,20 @@ if __name__ == "__main__":
     command_release = command_release.encode('utf-8')
 
     # chaser start
-    launch_chaser(ip)
-    print(">> chaser input done\n")
+    ssh(ip, command_mid_lvl)
+    print(">> chaser start\n")
 
     # release start
     # connection(command_release, port_release, "release", baud_release)
+    print(">> release start\n")
 
     # target start
     # connection(target_command, port_target, "target", baud_target)
+    print(">> target start\n")
+
+    keyboard.wait("q")
+
+    # end the mid_lvl
+    ssh(ip, end_command)
+
+
