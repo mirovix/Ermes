@@ -14,6 +14,7 @@ import paramiko
 import sys
 import os
 import keyboard
+from datetime import datetime
 
 baud_target = 38400
 baud_release = 9600
@@ -61,7 +62,7 @@ def process_input():
     return command_release, port_release, port_target, ip, port_chaser
 
 
-def ssh(ip, command):
+def ssh_conn(ip, command):
     # Load SSH host keys.
     ssh.load_system_host_keys()
     # Add SSH host key when missing.
@@ -100,7 +101,10 @@ if __name__ == "__main__":
     command_release = command_release.encode('utf-8')
 
     # chaser start
-    ssh(ip, command_mid_lvl)
+    now = datetime.now()
+    dt_string = now.strftime("%d_%m_%Y_%H_%M_%S")
+    cmd = command_mid_lvl % (str(port_chaser), str(dt_string))
+    ssh_conn(ip, cmd)
     print(">> chaser start\n")
 
     # release start
@@ -114,6 +118,6 @@ if __name__ == "__main__":
     keyboard.wait("q")
 
     # end the mid_lvl
-    ssh(ip, end_command)
+    ssh_conn(ip, end_command)
 
 
