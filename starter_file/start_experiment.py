@@ -30,13 +30,12 @@ port_chaser_default = "USB0"
 
 user = "pi"
 password = "ermespi"
-ssh = paramiko.SSHClient()
 
 input_names = {'command_release': command_release_default, 'port_release': port_release_default, 
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
 command_mid_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && rosrun mid_lvl mid_lvl %s >> log_mid_%s.txt"
-end_command = "rosnode kill /mid_lvl"
+end_command = "cd ermes_catkin_pi/ && rosnode kill /mid_lvl"
 
 def connection(command, port, name, baud, timeout=3): 
     with serial.Serial(port, baud, timeout=timeout) as connection:
@@ -63,11 +62,11 @@ def process_input():
 
 
 def ssh_conn(ip, command):
+    ssh = paramiko.SSHClient()
     # Load SSH host keys.
     ssh.load_system_host_keys()
     # Add SSH host key when missing.
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
     total_attempts = 1
     for attempt in range(total_attempts):
         try:
@@ -78,9 +77,9 @@ def ssh_conn(ip, command):
                         password=password,
                         look_for_keys=False)
             # Run command.
-            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
+            ssh.exec_command(command)
             # Read output from command.
-            output = ssh_stdout.readlines()
+            # output = ssh_stdout.readlines()
             # Close connection.
             ssh.close()
             # return output
