@@ -47,7 +47,7 @@ def connection(command, port, name, baud, timeout=3, print_out=False):
                 connection.write(command)
                 if print_out is True:
                     answer = connection.readline()
-                    print(">> slider output " + answer)
+                    print(">> slider output " + str(answer.deconde('utf-8')))
                 connection.close()
                 connection.flushInput()
             except KeyboardInterrupt:
