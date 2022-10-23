@@ -88,7 +88,7 @@ def ssh_conn(ip, command):
             print(">> unable to connect")
             print(error_message)
 
-def ssh_conn_kill(ip, commnad):
+def ssh_conn_kill(ip, command):
     cmd = command % ip
     print(cmd)
     os.system('cmd /k "' + cmd + '"') 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     print(">> release start\n")
 
     # target start
-    # connection(target_command, port_target, "target", baud_target)
+    connection(target_command, port_target, "target", baud_target)
     print(">> target start\n")
 
     keyboard.wait("q")
