@@ -43,13 +43,13 @@ def connection(command, port, name, baud, timeout=3, print_out=False):
         if connection.isOpen():
             print(">> " + name + " connected to port " + str(connection.port) + "\n")
             try:
-                connection.flushInput()
                 connection.write(command)
                 if print_out is True:
-                    answer = connection.readline()
-                    print(">> slider output " + str(answer.deconde('utf-8')))
+                    while connection.inWaiting()==0: pass
+                    if connection.inWaiting()>0: 
+                        answer = connection.readline()
+                        print(">> slider output : " + str(answer))
                 connection.close()
-                connection.flushInput()
             except KeyboardInterrupt:
                 print(">> error: keyboardInterrupt has been caught.")
 
@@ -100,12 +100,15 @@ def ssh_conn_kill(ip, command):
 if __name__ == "__main__":
     # ./script.py command_release:=value port_release:=value port_target:=value ip:=value port_chaser:=value
 
-    print("experiment start\n")
+    print(">> experiment start\n")
+
+    print(">> waiting... \n")
+    time.sleep(9)
 
     # process input (port, command, etc.)
     command_release, port_release, port_target, ip, port_chaser = process_input()
-    command_release += '\n'
-    command_release = command_release.encode('utf-8')
+    # command_release = dict_command_release[command_release] + "\r\n"
+    # command_release = command_release.encode('utf-8')
 
     # chaser start
     now = datetime.now()
@@ -115,8 +118,8 @@ if __name__ == "__main__":
     print(">> chaser start\n")
 
     # release start
-    connection(command_release, port_release, "release", baud_release, print_out=True)
-    print(">> release start\n")
+    # connection(command_release, port_release, "release", baud_release, print_out=True)
+    # print(">> release start\n")
 
     # target start
     connection(target_command, port_target, "target", baud_target)
