@@ -37,7 +37,7 @@ input_names = {'command_release': command_release_default, 'port_release': port_
 command_mid_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && rosrun mid_lvl mid_lvl %s >> log_mid_%s.txt"
 end_command = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_kill.txt"
 
-def connection(command, port, name, baud, timeout=3): 
+def connection(command, port, name, baud, timeout=3, print_out=False): 
     with serial.Serial(port, baud, timeout=timeout) as connection:
         # time.sleep(0.1)
         if connection.isOpen():
@@ -45,8 +45,9 @@ def connection(command, port, name, baud, timeout=3):
             try:
                 connection.flushInput()
                 connection.write(command)
-                answer = connection.readline()
-                print(">> slider output " + answer)
+                if print_out is True:
+                    answer = connection.readline()
+                    print(">> slider output " + answer)
                 connection.close()
                 connection.flushInput()
             except KeyboardInterrupt:
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     print(">> chaser start\n")
 
     # release start
-    connection(command_release, port_release, "release", baud_release)
+    connection(command_release, port_release, "release", baud_release, print_out=True)
     print(">> release start\n")
 
     # target start
