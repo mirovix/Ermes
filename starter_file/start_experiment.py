@@ -23,9 +23,9 @@ target_command = b"a"
 dict_command_release = {'0': "SETUP", '1': "s1", '2': "s2", '3': "s3", '4': "s4"}
 
 command_release_default = "SETUP"
-port_release_default = "COM3"
-port_target_default = "COM7" 
-ip_default = "192.168.1.1" 
+port_release_default = "COM6"
+port_target_default = "COM11" 
+ip_default = "192.168.137.224" 
 port_chaser_default = "USB0"
 
 user = "pi"
@@ -45,7 +45,10 @@ def connection(command, port, name, baud, timeout=3):
             try:
                 connection.flushInput()
                 connection.write(command)
+                answer = connection.readline()
+                print(">> slider output " + answer)
                 connection.close()
+                connection.flushInput()
             except KeyboardInterrupt:
                 print(">> error: keyboardInterrupt has been caught.")
 
@@ -111,7 +114,7 @@ if __name__ == "__main__":
     print(">> chaser start\n")
 
     # release start
-    # connection(command_release, port_release, "release", baud_release)
+    connection(command_release, port_release, "release", baud_release)
     print(">> release start\n")
 
     # target start
