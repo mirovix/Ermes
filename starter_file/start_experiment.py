@@ -35,7 +35,7 @@ input_names = {'command_release': command_release_default, 'port_release': port_
                'port_target': port_target_default, 'ip': ip_default, 'port_chaser': port_chaser_default}
 
 command_mid_lvl = "cd ermes_catkin_pi/ && source ~/ermes_catkin_pi/devel/setup.bash && rosrun mid_lvl mid_lvl %s >> log_mid_%s.txt"
-end_command = "cd ermes_catkin_pi/ && rosnode kill /mid_lvl"
+end_command = "putty.exe -ssh pi@%s -pw ermespi -m C:\cmd\command_kill.txt"
 
 def connection(command, port, name, baud, timeout=3): 
     with serial.Serial(port, baud, timeout=timeout) as connection:
@@ -88,6 +88,10 @@ def ssh_conn(ip, command):
             print(">> unable to connect")
             print(error_message)
 
+def ssh_conn_kill(ip, commnad):
+    cmd = command % ip
+    print(cmd)
+    os.system('cmd /k "' + cmd + '"') 
 
 if __name__ == "__main__":
     # ./script.py command_release:=value port_release:=value port_target:=value ip:=value port_chaser:=value
@@ -117,6 +121,6 @@ if __name__ == "__main__":
     keyboard.wait("q")
 
     # end the mid_lvl
-    ssh_conn(ip, end_command)
+    ssh_conn_kill(ip, end_command)
 
 
